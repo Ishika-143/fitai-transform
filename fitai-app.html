@@ -1087,14 +1087,12 @@ COACHING RULES:
 }
 
 // ── AI BACKEND ──
-// Uses Supabase Edge Function as primary, with direct API as fallback
+// Key stored safely in Supabase Edge Function secrets only
 const BACKEND = 'https://koryrqomquvnmjxtnnke.supabase.co/functions/v1/chat';
 const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtvcnlycW9tcXV2bm1qeHRubmtlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk4Njk4NDcsImV4cCI6MjA5NTQ0NTg0N30.KP36C1yDMhWDkYySgWXMRu96On5XtnD-gfW0aGWiWMw';
 
 async function callAI(system, messages, type='chat'){
   const maxTokens = type==='recipe' ? 700 : 450;
-
-  // PRIMARY: Try Supabase Edge Function
   try{
     const res = await fetch(BACKEND, {
       method: 'POST',
@@ -1105,37 +1103,13 @@ async function callAI(system, messages, type='chat'){
       body: JSON.stringify({ system, messages, type })
     });
     const d = await res.json();
-    if(d.text && d.text.length > 10) return d.text;
-    // If edge function returns error, log it and try fallback
-    console.log('Edge function response:', d);
+    if(d.text && d.text.length > 5) return d.text;
+    console.log('Edge fn response:', JSON.stringify(d));
+    return null;
   }catch(e){
-    console.log('Edge function failed:', e.message);
+    console.log('AI call failed:', e.message);
+    return null;
   }
-
-  // FALLBACK: Direct Anthropic API call
-  try{
-    const res = await fetch('https://api.anthropic.com/v1/messages',{
-      method: 'POST',
-      headers:{
-        'Content-Type': 'application/json',
-        'anthropic-dangerous-direct-browser-access': 'true'
-      },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
-        max_tokens: maxTokens,
-        system: system,
-        messages: messages
-      })
-    });
-    const d = await res.json();
-    console.log('Direct API response:', d);
-    if(d.content?.[0]?.text) return d.content[0].text;
-    if(d.error) console.log('API error:', d.error);
-  }catch(e){
-    console.log('Direct API failed:', e.message);
-  }
-
-  return null; // Both failed
 }
 
 async function sendMsg(){
