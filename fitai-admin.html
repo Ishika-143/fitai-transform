@@ -1,0 +1,333 @@
+fitai-admin.html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FitAI Admin Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Clash+Display:wght@400;500;600;700&family=Satoshi:wght@300;400;500;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root{--g:#00C896;--gd:#007A5E;--gx:#E0FFF6;--am:#FFB800;--co:#FF5C5C;--bl:#3B8BFF;--bg:#0A0F0E;--surf:#111918;--surf2:#172120;--brd:rgba(255,255,255,0.07);--brd2:rgba(255,255,255,0.12);--txt:#F0FDF9;--mt:#8AABA5;--ft:#3A5550;--fh:'Clash Display',sans-serif;--fb:'Satoshi',sans-serif}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--fb);background:var(--bg);color:var(--txt);min-height:100vh}
+.topbar{background:var(--surf);border-bottom:1px solid var(--brd);padding:14px 24px;display:flex;align-items:center;justify-content:space-between}
+.logo{font-family:var(--fh);font-size:18px;font-weight:700;color:var(--txt)}
+.logo span{color:var(--g)}
+.admin-tag{background:var(--am);color:#000;font-size:11px;font-weight:700;padding:3px 10px;border-radius:99px}
+.logout-btn{background:transparent;border:1px solid var(--brd2);color:var(--mt);padding:7px 16px;border-radius:8px;font-size:13px;cursor:pointer;font-family:var(--fb);transition:all .2s}
+.logout-btn:hover{border-color:var(--co);color:var(--co)}
+.main{max-width:1200px;margin:0 auto;padding:24px}
+
+/* LOGIN */
+.login-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
+.login-card{background:var(--surf);border:1px solid var(--brd2);border-radius:20px;padding:32px;width:100%;max-width:380px}
+.login-title{font-family:var(--fh);font-size:22px;font-weight:700;color:var(--txt);margin-bottom:6px}
+.login-sub{font-size:13px;color:var(--mt);margin-bottom:24px}
+.field{margin-bottom:14px}
+.field label{display:block;font-size:12px;font-weight:500;color:var(--mt);margin-bottom:5px}
+.field input{width:100%;padding:11px 14px;background:var(--surf2);border:1.5px solid var(--brd2);border-radius:10px;font-size:14px;font-family:var(--fb);color:var(--txt);outline:none;transition:border .15s}
+.field input:focus{border-color:var(--g)}
+.login-btn{width:100%;padding:12px;background:var(--gd);color:#fff;border:none;border-radius:10px;font-family:var(--fh);font-size:14px;font-weight:700;cursor:pointer;transition:all .2s}
+.login-btn:hover{background:var(--g)}
+.err{background:rgba(255,92,92,.12);border:1px solid rgba(255,92,92,.3);color:#fca5a5;border-radius:8px;padding:9px 12px;font-size:13px;margin-bottom:12px;display:none}
+.err.show{display:block}
+
+/* STATS */
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;margin-bottom:24px}
+.stat-card{background:var(--surf);border:1px solid var(--brd);border-radius:16px;padding:18px}
+.stat-label{font-size:12px;color:var(--mt);margin-bottom:6px;font-weight:500}
+.stat-num{font-family:var(--fh);font-size:32px;font-weight:700;color:var(--txt)}
+.stat-sub{font-size:12px;color:var(--ft);margin-top:4px}
+.stat-card.green{border-color:rgba(0,200,150,.2);background:rgba(0,200,150,.05)}
+.stat-card.amber{border-color:rgba(255,184,0,.2);background:rgba(255,184,0,.05)}
+.stat-card.blue{border-color:rgba(59,139,255,.2);background:rgba(59,139,255,.05)}
+.stat-card.red{border-color:rgba(255,92,92,.2);background:rgba(255,92,92,.05)}
+
+/* TABLE */
+.section{background:var(--surf);border:1px solid var(--brd);border-radius:16px;overflow:hidden;margin-bottom:20px}
+.section-head{padding:16px 20px;border-bottom:1px solid var(--brd);display:flex;align-items:center;justify-content:space-between}
+.section-title{font-family:var(--fh);font-size:15px;font-weight:600;color:var(--txt)}
+.refresh-btn{background:var(--surf2);border:1px solid var(--brd2);color:var(--mt);padding:6px 14px;border-radius:8px;font-size:12px;cursor:pointer;font-family:var(--fb);transition:all .2s}
+.refresh-btn:hover{border-color:var(--g);color:var(--g)}
+.table-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse}
+th{padding:10px 16px;text-align:left;font-size:11px;font-weight:600;color:var(--ft);text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid var(--brd);white-space:nowrap}
+td{padding:12px 16px;font-size:13px;color:var(--mt);border-bottom:1px solid var(--brd)}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:rgba(255,255,255,.02)}
+.badge{font-size:11px;font-weight:600;padding:3px 9px;border-radius:99px;white-space:nowrap}
+.b-pro{background:rgba(255,184,0,.15);color:var(--am)}
+.b-starter{background:rgba(59,139,255,.15);color:var(--bl)}
+.b-free{background:rgba(255,255,255,.07);color:var(--ft)}
+.b-gain{background:rgba(0,200,150,.12);color:var(--g)}
+.b-loss{background:rgba(255,92,92,.12);color:var(--co)}
+.user-name{font-weight:500;color:var(--txt)}
+.empty{text-align:center;padding:40px;color:var(--ft);font-size:14px}
+.loading-row{text-align:center;padding:30px;color:var(--mt);font-size:13px}
+
+/* Revenue section */
+.rev-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.rev-item{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--brd)}
+.rev-item:last-child{border-bottom:none}
+.rev-label{font-size:13px;color:var(--mt)}
+.rev-num{font-family:var(--fh);font-size:15px;font-weight:600;color:var(--txt)}
+</style>
+</head>
+<body>
+
+<!-- LOGIN PAGE -->
+<div id="login-page">
+  <div class="login-wrap">
+    <div class="login-card">
+      <div style="font-size:32px;margin-bottom:12px">🌿</div>
+      <div class="login-title">FitAI Admin</div>
+      <div class="login-sub">Sign in with your admin Supabase account to access the dashboard.</div>
+      <div class="err" id="login-err"></div>
+      <div class="field"><label>Email</label><input type="email" id="a-email" placeholder="admin@fitai.app"></div>
+      <div class="field"><label>Password</label><input type="password" id="a-pass" placeholder="Your password" onkeydown="if(event.key==='Enter')adminLogin()"></div>
+      <button class="login-btn" onclick="adminLogin()" id="login-btn">Sign in →</button>
+      <div style="margin-top:16px;font-size:12px;color:var(--ft);text-align:center">This page is for FitAI admins only.<br>Use your Supabase account credentials.</div>
+    </div>
+  </div>
+</div>
+
+<!-- DASHBOARD -->
+<div id="dashboard" style="display:none">
+  <div class="topbar">
+    <div style="display:flex;align-items:center;gap:10px">
+      <div class="logo">🌿 Fit<span>AI</span></div>
+      <span class="admin-tag">ADMIN</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:12px">
+      <span style="font-size:13px;color:var(--mt)" id="admin-email-display"></span>
+      <button class="logout-btn" onclick="adminLogout()">Sign out</button>
+    </div>
+  </div>
+
+  <div class="main">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+      <div>
+        <div style="font-family:var(--fh);font-size:22px;font-weight:700;color:var(--txt)">Dashboard</div>
+        <div style="font-size:13px;color:var(--mt);margin-top:2px" id="last-updated">Loading...</div>
+      </div>
+      <button class="refresh-btn" onclick="loadDashboard()">↻ Refresh</button>
+    </div>
+
+    <!-- STATS -->
+    <div class="stats-grid">
+      <div class="stat-card green">
+        <div class="stat-label">Total Users</div>
+        <div class="stat-num" id="stat-total">—</div>
+        <div class="stat-sub">All registered users</div>
+      </div>
+      <div class="stat-card amber">
+        <div class="stat-label">Pro Users</div>
+        <div class="stat-num" id="stat-pro">—</div>
+        <div class="stat-sub">Paying Pro subscribers</div>
+      </div>
+      <div class="stat-card blue">
+        <div class="stat-label">Starter Users</div>
+        <div class="stat-num" id="stat-starter">—</div>
+        <div class="stat-sub">Paying Starter subscribers</div>
+      </div>
+      <div class="stat-card red">
+        <div class="stat-label">Free Users</div>
+        <div class="stat-num" id="stat-free">—</div>
+        <div class="stat-sub">Not yet subscribed</div>
+      </div>
+    </div>
+
+    <!-- REVENUE -->
+    <div class="section" style="margin-bottom:20px">
+      <div class="section-head"><div class="section-title">💰 Revenue estimate</div></div>
+      <div style="padding:16px 20px">
+        <div class="rev-grid">
+          <div>
+            <div class="rev-item"><div class="rev-label">Pro users × ₹999/mo</div><div class="rev-num" id="rev-pro">₹0</div></div>
+            <div class="rev-item"><div class="rev-label">Starter users × ₹499/mo</div><div class="rev-num" id="rev-starter">₹0</div></div>
+            <div class="rev-item"><div class="rev-label" style="font-weight:600;color:var(--txt)">Total monthly revenue</div><div class="rev-num" id="rev-total" style="color:var(--g)">₹0</div></div>
+          </div>
+          <div>
+            <div class="rev-item"><div class="rev-label">Weight gain users</div><div class="rev-num" id="stat-gain">—</div></div>
+            <div class="rev-item"><div class="rev-label">Weight loss users</div><div class="rev-num" id="stat-loss">—</div></div>
+            <div class="rev-item"><div class="rev-label">Avg streak (days)</div><div class="rev-num" id="stat-streak">—</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- USERS TABLE -->
+    <div class="section">
+      <div class="section-head">
+        <div class="section-title">👥 All Users</div>
+        <div style="display:flex;gap:8px;align-items:center">
+          <input id="search-inp" placeholder="Search by name or email..." style="background:var(--surf2);border:1px solid var(--brd2);border-radius:8px;padding:6px 12px;font-size:13px;color:var(--txt);outline:none;font-family:var(--fb);width:220px" oninput="filterUsers(this.value)">
+          <button class="refresh-btn" onclick="exportCSV()">⬇ Export CSV</button>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Email</th>
+              <th>Plan</th>
+              <th>Goal</th>
+              <th>Country</th>
+              <th>Weight</th>
+              <th>Target</th>
+              <th>Streak</th>
+              <th>Joined</th>
+            </tr>
+          </thead>
+          <tbody id="users-tbody">
+            <tr><td colspan="9" class="loading-row">Loading users...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- WEIGHT LOGS -->
+    <div class="section">
+      <div class="section-head"><div class="section-title">📊 Recent weight logs</div></div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>User ID</th><th>Weight (kg)</th><th>Date</th><th>Note</th></tr>
+          </thead>
+          <tbody id="logs-tbody">
+            <tr><td colspan="4" class="loading-row">Loading logs...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+const {createClient}=supabase;
+const sb=createClient(
+  'https://koryrqomquvnmjxtnnke.supabase.co',
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtvcnlycW9tcXV2bm1qeHRubmtlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk4Njk4NDcsImV4cCI6MjA5NTQ0NTg0N30.KP36C1yDMhWDkYySgWXMRu96On5XtnD-gfW0aGWiWMw'
+);
+
+let allUsers=[];
+
+// Check if already logged in
+async function init(){
+  const {data:{session}}=await sb.auth.getSession();
+  if(session){showDashboard(session.user);}
+}
+init();
+
+async function adminLogin(){
+  const email=document.getElementById('a-email').value.trim();
+  const pass=document.getElementById('a-pass').value;
+  if(!email||!pass){showErr('Please fill in both fields');return;}
+  document.getElementById('login-btn').textContent='Signing in...';
+  const {data,error}=await sb.auth.signInWithPassword({email,password:pass});
+  if(error){showErr(error.message);document.getElementById('login-btn').textContent='Sign in →';return;}
+  showDashboard(data.user);
+}
+
+function showErr(msg){const el=document.getElementById('login-err');el.textContent=msg;el.classList.add('show');}
+
+function showDashboard(user){
+  document.getElementById('login-page').style.display='none';
+  document.getElementById('dashboard').style.display='block';
+  document.getElementById('admin-email-display').textContent=user.email;
+  loadDashboard();
+}
+
+async function adminLogout(){
+  await sb.auth.signOut();
+  document.getElementById('dashboard').style.display='none';
+  document.getElementById('login-page').style.display='block';
+}
+
+async function loadDashboard(){
+  document.getElementById('last-updated').textContent='Updated: '+new Date().toLocaleTimeString();
+  // Load users
+  const {data:users,error}=await sb.from('profiles').select('*').order('created_at',{ascending:false});
+  if(error){console.error(error);return;}
+  allUsers=users||[];
+  renderStats(allUsers);
+  renderUsers(allUsers);
+  // Load weight logs
+  const {data:logs}=await sb.from('weight_log').select('*').order('created_at',{ascending:false}).limit(50);
+  renderLogs(logs||[]);
+}
+
+function renderStats(users){
+  const total=users.length;
+  const pro=users.filter(u=>u.plan==='pro').length;
+  const starter=users.filter(u=>u.plan==='starter').length;
+  const free=users.filter(u=>!u.plan||u.plan==='free').length;
+  const gain=users.filter(u=>u.goal==='gain').length;
+  const loss=users.filter(u=>u.goal==='loss').length;
+  const avgStreak=users.length?Math.round(users.reduce((a,u)=>a+(u.streak||0),0)/users.length):0;
+  document.getElementById('stat-total').textContent=total;
+  document.getElementById('stat-pro').textContent=pro;
+  document.getElementById('stat-starter').textContent=starter;
+  document.getElementById('stat-free').textContent=free;
+  document.getElementById('stat-gain').textContent=gain;
+  document.getElementById('stat-loss').textContent=loss;
+  document.getElementById('stat-streak').textContent=avgStreak+' days';
+  const revPro=pro*999;
+  const revStarter=starter*499;
+  document.getElementById('rev-pro').textContent='₹'+revPro.toLocaleString('en-IN');
+  document.getElementById('rev-starter').textContent='₹'+revStarter.toLocaleString('en-IN');
+  document.getElementById('rev-total').textContent='₹'+(revPro+revStarter).toLocaleString('en-IN');
+}
+
+function renderUsers(users){
+  const tbody=document.getElementById('users-tbody');
+  if(!users.length){tbody.innerHTML='<tr><td colspan="9" class="empty">No users yet. Share your app link to get your first user! 🚀</td></tr>';return;}
+  tbody.innerHTML=users.map(u=>`
+    <tr>
+      <td><div class="user-name">${u.name||'—'}</div></td>
+      <td>${u.email||'—'}</td>
+      <td><span class="badge ${u.plan==='pro'?'b-pro':u.plan==='starter'?'b-starter':'b-free'}">${u.plan||'free'}</span></td>
+      <td><span class="badge ${u.goal==='gain'?'b-gain':'b-loss'}">${u.goal||'—'}</span></td>
+      <td>${u.country||'—'}</td>
+      <td>${u.current_weight?u.current_weight+'kg':'—'}</td>
+      <td>${u.target_weight?u.target_weight+'kg':'—'}</td>
+      <td>${u.streak||0} 🔥</td>
+      <td>${u.created_at?new Date(u.created_at).toLocaleDateString('en-IN'):'—'}</td>
+    </tr>`).join('');
+}
+
+function renderLogs(logs){
+  const tbody=document.getElementById('logs-tbody');
+  if(!logs.length){tbody.innerHTML='<tr><td colspan="4" class="empty">No weight logs yet.</td></tr>';return;}
+  tbody.innerHTML=logs.map(l=>`
+    <tr>
+      <td style="font-size:11px;color:var(--ft)">${l.user_id?.substring(0,8)+'...'||'—'}</td>
+      <td style="font-weight:600;color:var(--txt)">${l.weight}kg</td>
+      <td>${l.date||'—'}</td>
+      <td>${l.note||'—'}</td>
+    </tr>`).join('');
+}
+
+function filterUsers(q){
+  if(!q){renderUsers(allUsers);return;}
+  const filtered=allUsers.filter(u=>(u.name||'').toLowerCase().includes(q.toLowerCase())||(u.email||'').toLowerCase().includes(q.toLowerCase()));
+  renderUsers(filtered);
+}
+
+function exportCSV(){
+  if(!allUsers.length){alert('No users to export yet!');return;}
+  const headers=['Name','Email','Plan','Goal','Country','Current Weight','Target Weight','Streak','Joined'];
+  const rows=allUsers.map(u=>[u.name||'',u.email||'',u.plan||'free',u.goal||'',u.country||'',u.current_weight||'',u.target_weight||'',u.streak||0,u.created_at?new Date(u.created_at).toLocaleDateString():'']);
+  const csv=[headers,...rows].map(r=>r.join(',')).join('\n');
+  const blob=new Blob([csv],{type:'text/csv'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download='fitai-users-'+new Date().toISOString().split('T')[0]+'.csv';
+  a.click();
+}
+</script>
+</body>
+</html>

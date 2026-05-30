@@ -1,0 +1,1158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>FitAI — Your Personal AI Health Coach</title>
+<link href="https://fonts.googleapis.com/css2?family=Clash+Display:wght@400;500;600;700&family=Satoshi:wght@300;400;500;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root{--g:#00C896;--gd:#007A5E;--gx:#E0FFF6;--am:#FFB800;--aml:#FFF8E0;--co:#FF5C5C;--col:#FFF0F0;--bl:#3B8BFF;--bll:#EEF4FF;--pu:#8B5CF6;--pul:#F3EEFF;--bg:#F7F9F8;--surf:#FFFFFF;--brd:rgba(0,0,0,0.07);--brd2:rgba(0,0,0,0.12);--txt:#0D1412;--mt:#5A6B67;--ft:#9AABA7;--r:16px;--rs:10px;--fh:'Clash Display',sans-serif;--fb:'Satoshi',sans-serif}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;overflow:hidden;font-family:var(--fb);background:#1A1A2E}
+body{display:flex;align-items:center;justify-content:center}
+.phone{width:min(390px,100vw);height:min(820px,100vh);background:var(--surf);border-radius:44px;box-shadow:0 60px 120px rgba(0,0,0,0.5),0 0 0 1px rgba(255,255,255,0.1);overflow:hidden;display:flex;flex-direction:column;position:relative}
+@media(max-width:420px){.phone{border-radius:0;height:100vh;width:100vw}}
+.status{padding:14px 24px 4px;display:flex;justify-content:space-between;font-size:12px;font-weight:500;color:var(--txt);flex-shrink:0}
+.screen{display:none;flex-direction:column;flex:1;overflow:hidden}
+.screen.active{display:flex}
+.scroll{flex:1;overflow-y:auto;padding:0 16px 16px}
+.scroll::-webkit-scrollbar{display:none}
+.tabs{display:flex;background:var(--surf);border-top:1px solid var(--brd);padding:6px 0 14px;flex-shrink:0}
+.tab{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;padding:5px 2px}
+.tab-icon{width:30px;height:30px;display:flex;align-items:center;justify-content:center;border-radius:9px;font-size:17px;transition:all .2s}
+.tab.active .tab-icon{background:var(--gx)}
+.tab-lbl{font-size:10px;color:var(--ft);font-weight:500}
+.tab.active .tab-lbl{color:var(--gd)}
+.sh{padding:10px 16px 12px;flex-shrink:0}
+.sh h2{font-family:var(--fh);font-size:22px;font-weight:600;color:var(--txt)}
+.sh p{font-size:13px;color:var(--mt);margin-top:2px}
+.card{background:var(--surf);border:1px solid var(--brd);border-radius:var(--r);padding:14px;margin-bottom:10px}
+.ct{font-family:var(--fh);font-size:11px;font-weight:600;color:var(--ft);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px}
+.sg{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:10px}
+.sb{background:var(--bg);border-radius:var(--rs);padding:10px 8px;text-align:center}
+.sn{font-family:var(--fh);font-size:20px;font-weight:700;color:var(--txt)}
+.su{font-size:10px;color:var(--mt)}
+.sl{font-size:11px;color:var(--ft);margin-top:1px}
+.pw{margin-bottom:8px}
+.pm2{display:flex;justify-content:space-between;font-size:12px;color:var(--mt);margin-bottom:4px}
+.pt{height:7px;background:var(--bg);border-radius:99px;overflow:hidden;border:1px solid var(--brd)}
+.pf{height:100%;border-radius:99px;transition:width .8s cubic-bezier(.4,0,.2,1)}
+.fg{background:var(--g)}.fb{background:var(--bl)}.fa{background:var(--am)}
+.mr{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--brd)}
+.mr:last-child{border-bottom:none}
+.mn{font-size:13px;font-weight:500;color:var(--txt)}
+.mt3{font-size:11px;color:var(--ft);margin-top:1px}
+.mtg{font-size:10px;font-weight:600;padding:3px 8px;border-radius:99px;white-space:nowrap}
+.tg{background:var(--gx);color:var(--gd)}.tr{background:var(--col);color:#b91c1c}
+.ib{border-radius:var(--rs);padding:9px 12px;font-size:12px;line-height:1.5;display:flex;gap:8px;align-items:flex-start;margin-top:8px}
+.ig{background:var(--gx);color:var(--gd);border:1px solid rgba(0,200,150,.2)}
+.ia{background:var(--aml);color:#92400e;border:1px solid rgba(255,184,0,.2)}
+.ib2{background:var(--bll);color:#1e40af;border:1px solid rgba(59,139,255,.2)}
+.ip{background:var(--pul);color:#4c1d95;border:1px solid rgba(139,92,246,.2)}
+.drops{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:10px}
+.drop{width:26px;height:26px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);cursor:pointer;transition:all .2s;border:1.5px solid var(--brd2);background:var(--bg)}
+.drop.on{background:var(--bl);border-color:#2563eb}
+.drop:hover{transform:rotate(-45deg) scale(1.15)}
+.chat-area{flex:1;overflow-y:auto;padding:10px 16px;display:flex;flex-direction:column;gap:9px}
+.chat-area::-webkit-scrollbar{display:none}
+.bw{display:flex;flex-direction:column;max-width:83%}
+.bw.u{align-self:flex-end;align-items:flex-end}
+.bw.ai{align-self:flex-start}
+.bs{font-size:10px;font-weight:500;color:var(--ft);margin-bottom:2px}
+.bb{padding:9px 13px;border-radius:15px;font-size:13px;line-height:1.55}
+.bb.ai{background:var(--bg);border:1px solid var(--brd);color:var(--txt);border-bottom-left-radius:3px}
+.bb.u{background:var(--gd);color:#d0fff4;border-bottom-right-radius:3px}
+.chips{display:flex;flex-wrap:wrap;gap:6px;padding:6px 16px 8px;flex-shrink:0}
+.chip{font-size:12px;padding:6px 11px;border-radius:99px;border:1px solid var(--brd2);background:var(--surf);color:var(--txt);cursor:pointer;transition:all .15s}
+.chip:hover{border-color:var(--g);color:var(--gd);background:var(--gx)}
+.ci-row{display:flex;gap:8px;align-items:center;padding:8px 16px 12px;border-top:1px solid var(--brd);flex-shrink:0}
+.ci{flex:1;background:var(--bg);border:1px solid var(--brd2);border-radius:99px;padding:9px 14px;font-size:13px;font-family:var(--fb);color:var(--txt);outline:none;transition:border .15s}
+.ci:focus{border-color:var(--g)}
+.sb2{width:36px;height:36px;border-radius:50%;background:var(--gd);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .15s}
+.sb2:hover{background:var(--g)}
+.sb2 svg{width:15px;height:15px;fill:none;stroke:#fff;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.d3{display:flex;gap:4px;align-items:center;padding:9px 13px}
+.d{width:6px;height:6px;border-radius:50%;background:var(--ft);animation:bk 1.2s infinite}
+.d:nth-child(2){animation-delay:.2s}.d:nth-child(3){animation-delay:.4s}
+@keyframes bk{0%,80%,100%{transform:translateY(0);opacity:.4}40%{transform:translateY(-5px);opacity:1}}
+.av{width:36px;height:36px;border-radius:50%;background:var(--gd);display:flex;align-items:center;justify-content:center;font-family:var(--fh);font-size:12px;font-weight:700;color:var(--gx);flex-shrink:0}
+.odot{display:inline-block;width:6px;height:6px;background:var(--g);border-radius:50%;margin-right:4px;animation:pl 2s infinite}
+@keyframes pl{0%,100%{opacity:1}50%{opacity:.3}}
+.sk{flex:1;border-radius:var(--rs);padding:10px;text-align:center}
+.skn{font-family:var(--fh);font-size:20px;font-weight:700}
+.skl{font-size:11px;margin-top:1px}
+.btn{width:100%;padding:13px;border:none;border-radius:var(--rs);font-family:var(--fh);font-size:14px;font-weight:600;cursor:pointer;transition:all .2s}
+.btn-g{background:var(--gd);color:#fff}
+.btn-g:hover{background:var(--g)}
+.btn-o{background:transparent;color:var(--txt);border:1.5px solid var(--brd2);font-family:var(--fh);font-size:13px;font-weight:600;padding:11px;border-radius:var(--rs);width:100%;cursor:pointer;margin-bottom:8px;transition:all .2s}
+.btn-o:hover{border-color:var(--g);color:var(--gd)}
+.divider{height:1px;background:var(--brd);margin:8px 0}
+.inp{width:100%;padding:11px 14px;border:1.5px solid var(--brd2);border-radius:var(--rs);font-size:14px;font-family:var(--fb);color:var(--txt);background:var(--surf);outline:none;transition:border .15s}
+.inp:focus{border-color:var(--g)}
+.inpl{font-size:12px;font-weight:500;color:var(--mt);margin-bottom:4px}
+.ing{margin-bottom:10px}
+.inrow{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.sel{width:100%;padding:11px 14px;border:1.5px solid var(--brd2);border-radius:var(--rs);font-size:14px;font-family:var(--fb);color:var(--txt);background:var(--surf);outline:none;appearance:none}
+.sel:focus{border-color:var(--g)}
+.gc{border:1.5px solid var(--brd2);border-radius:var(--r);padding:14px 12px;cursor:pointer;transition:all .2s}
+.gc.sg2{border-color:var(--g);background:var(--gx)}
+.gc.sr{border-color:var(--co);background:var(--col)}
+.ge{font-size:26px;margin-bottom:6px}
+.gn{font-family:var(--fh);font-size:14px;font-weight:600}
+.gds{font-size:11px;color:var(--mt);margin-top:2px}
+.gg{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+.ob{display:none;position:absolute;inset:0;background:var(--surf);z-index:50;flex-direction:column;overflow:hidden}
+.ob.active{display:flex}
+.os{display:none;flex-direction:column;flex:1;overflow:hidden}
+.os.active{display:flex}
+.oh{padding:28px 20px 22px;flex-shrink:0}
+.oh h1{font-family:var(--fh);font-size:26px;font-weight:700;color:#fff;line-height:1.2;margin-bottom:6px}
+.oh p{font-size:13px;color:#6ee7b7;line-height:1.5}
+.ob-body{padding:18px;flex:1;overflow-y:auto}
+.ob-body::-webkit-scrollbar{display:none}
+.ob-footer{padding:14px 18px 22px;flex-shrink:0}
+.dots{display:flex;gap:5px;justify-content:center;margin-bottom:10px}
+.odp{width:7px;height:7px;border-radius:50%;background:var(--brd2);transition:all .3s}
+.odp.active{background:var(--g);width:18px;border-radius:4px}
+.wo-row{display:grid;grid-template-columns:34px 1fr auto;gap:9px;align-items:center;padding:8px 0;border-bottom:1px solid var(--brd)}
+.wo-row:last-child{border-bottom:none}
+.wo-n{width:32px;height:32px;border-radius:var(--rs);background:var(--bg);display:flex;align-items:center;justify-content:center;font-family:var(--fh);font-size:13px;font-weight:700;color:var(--mt);border:1px solid var(--brd)}
+.wo-name{font-size:13px;font-weight:500;color:var(--txt)}
+.wo-d{font-size:11px;color:var(--mt);margin-top:1px}
+.wo-s{font-size:12px;color:var(--mt);white-space:nowrap}
+.tl-item{display:flex;gap:10px;margin-bottom:14px;position:relative}
+.tl-item:not(:last-child)::before{content:'';position:absolute;left:17px;top:38px;bottom:-14px;width:1.5px;background:var(--brd2)}
+.tl-ph{width:38px;height:50px;border-radius:8px;background:var(--bg);border:1px solid var(--brd);display:flex;align-items:center;justify-content:center;font-size:16px;overflow:hidden;flex-shrink:0}
+.tl-ph img{width:100%;height:100%;object-fit:cover}
+.tl-date{font-size:11px;color:var(--ft);margin-bottom:1px}
+.tl-wt{font-family:var(--fh);font-size:16px;font-weight:700;color:var(--txt)}
+.tl-note{font-size:12px;color:var(--mt);margin-top:1px}
+.tl-badge{display:inline-block;font-size:10px;font-weight:600;padding:2px 7px;border-radius:99px;margin-top:3px}
+.pu-btn{border:2px dashed var(--brd2);border-radius:var(--r);padding:18px;text-align:center;cursor:pointer;transition:all .2s;margin-bottom:10px}
+.pu-btn:hover{border-color:var(--g);background:var(--gx)}
+.shop-item{display:flex;gap:10px;align-items:flex-start;padding:10px 0;border-bottom:1px solid var(--brd)}
+.shop-item:last-child{border-bottom:none}
+.shop-img{width:54px;height:54px;border-radius:var(--rs);background:var(--bg);border:1px solid var(--brd);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0}
+.shop-name{font-size:13px;font-weight:500;color:var(--txt);margin-bottom:2px}
+.shop-desc{font-size:11px;color:var(--mt);line-height:1.4;margin-bottom:5px}
+.shop-row{display:flex;align-items:center;justify-content:space-between}
+.shop-price{font-family:var(--fh);font-size:14px;font-weight:700;color:var(--txt)}
+.shop-btn{font-size:11px;font-weight:600;padding:5px 12px;border-radius:99px;border:none;cursor:pointer;background:var(--gd);color:#fff;font-family:var(--fh);transition:background .15s}
+.shop-btn:hover{background:var(--g)}
+.shop-cat{font-family:var(--fh);font-size:12px;font-weight:600;color:var(--mt);text-transform:uppercase;letter-spacing:.05em;margin:12px 0 6px}
+.lock-overlay{background:var(--bg);border:1.5px dashed var(--brd2);border-radius:var(--r);padding:20px;text-align:center;margin-bottom:10px}
+.gtag{display:inline-block;background:var(--gx);color:var(--gd);font-size:11px;font-weight:600;padding:2px 8px;border-radius:99px}
+.pay-modal{position:absolute;inset:0;background:rgba(0,0,0,.5);z-index:300;display:none;align-items:flex-end}
+.pay-modal.open{display:flex}
+.pay-sheet{background:var(--surf);border-radius:22px 22px 0 0;padding:22px 18px 30px;width:100%;animation:su .3s ease;max-height:90vh;overflow-y:auto}
+@keyframes su{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.pm-handle{width:34px;height:4px;background:var(--brd2);border-radius:99px;margin:0 auto 18px}
+.dur-opt{border:1.5px solid var(--brd2);border-radius:var(--rs);padding:10px 12px;cursor:pointer;transition:all .2s;background:var(--bg)}
+.dur-opt.active{border-color:var(--g);background:var(--gx)}
+.dur-opt.active div{color:var(--gd) !important}
+.success-screen{display:none;position:absolute;inset:0;background:var(--gd);z-index:400;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:40px}
+.success-screen.show{display:flex}
+
+/* ── 3D INTRO ── */
+.intro{position:absolute;inset:0;z-index:500;background:#0A0F0E;display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden}
+.intro.done{display:none}
+.intro-canvas{position:absolute;inset:0}
+.intro-content{position:relative;z-index:2;text-align:center;opacity:0;animation:fadeUp 1s ease 1.5s forwards}
+@keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+.intro-logo{font-size:56px;margin-bottom:12px;animation:spin3d 2s ease-out}
+@keyframes spin3d{0%{transform:rotateY(-180deg) scale(0);opacity:0}60%{transform:rotateY(20deg) scale(1.1)}100%{transform:rotateY(0) scale(1);opacity:1}}
+.intro-name{font-family:var(--fh);font-size:36px;font-weight:700;color:#fff;letter-spacing:1px}
+.intro-name span{color:var(--g)}
+.intro-tag{font-size:14px;color:#6ee7b7;margin-top:8px;margin-bottom:32px}
+.intro-btn{background:linear-gradient(135deg,var(--gd),var(--g));color:#fff;border:none;border-radius:99px;padding:14px 36px;font-family:var(--fh);font-size:15px;font-weight:700;cursor:pointer;box-shadow:0 8px 30px rgba(0,200,150,.4);transition:all .2s;animation:pulse 2s ease 2.5s infinite}
+@keyframes pulse{0%,100%{box-shadow:0 8px 30px rgba(0,200,150,.4)}50%{box-shadow:0 8px 50px rgba(0,200,150,.7)}}
+.intro-btn:hover{transform:scale(1.05)}
+.particle{position:absolute;border-radius:50%;pointer-events:none;animation:float3d linear infinite}
+@keyframes float3d{0%{transform:translateY(100vh) scale(0);opacity:0}10%{opacity:.8}90%{opacity:.3}100%{transform:translateY(-100px) scale(1.5);opacity:0}}
+
+/* ── REAL LOADER ── */
+.real-loader{position:absolute;inset:0;background:var(--surf);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:100;gap:14px;transition:opacity .5s}
+.real-loader.hide{opacity:0;pointer-events:none}
+.spin{width:40px;height:40px;border:3px solid var(--gx);border-top-color:var(--gd);border-radius:50%;animation:sp .8s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+.load-txt{font-family:var(--fh);font-size:14px;font-weight:600;color:var(--gd)}
+
+/* ── ADMIN BADGE ── */
+.admin-btn{position:absolute;top:18px;right:16px;background:var(--am);color:#fff;border:none;border-radius:99px;padding:4px 10px;font-size:10px;font-weight:700;cursor:pointer;font-family:var(--fh);z-index:10}
+</style>
+</head>
+<body>
+<div class="phone" id="phone">
+
+<!-- 3D INTRO -->
+<div class="intro" id="intro">
+  <canvas class="intro-canvas" id="intro-canvas"></canvas>
+  <div class="intro-content">
+    <div class="intro-logo">🌿</div>
+    <div class="intro-name">Fit<span>AI</span></div>
+    <div class="intro-tag">Your personal AI health coach</div>
+    <button class="intro-btn" onclick="startApp()">Start your journey →</button>
+  </div>
+</div>
+
+<!-- REAL LOADER -->
+<div class="real-loader" id="real-loader">
+  <div style="font-size:32px">🌿</div>
+  <div class="spin"></div>
+  <div class="load-txt" id="load-msg">Loading your profile...</div>
+</div>
+
+<!-- SUCCESS -->
+<div class="success-screen" id="success-scr">
+  <div style="font-size:56px;margin-bottom:16px">🎉</div>
+  <div style="font-family:var(--fh);font-size:24px;font-weight:700;color:#fff;margin-bottom:8px">Welcome to Pro!</div>
+  <div style="font-size:14px;color:#6ee7b7;margin-bottom:28px;line-height:1.5">Coach Arjun is fully unlocked.<br>Your transformation starts now.</div>
+  <button onclick="document.getElementById('success-scr').classList.remove('show');goTo('chat')" style="background:#fff;color:var(--gd);border:none;border-radius:12px;padding:13px 32px;font-family:var(--fh);font-size:15px;font-weight:700;cursor:pointer">Start training →</button>
+</div>
+
+<!-- ONBOARDING -->
+<div class="ob" id="ob">
+  <div class="os active" id="ob1">
+    <div class="oh" style="background:var(--gd)">
+      <div style="font-size:38px;margin-bottom:10px">🌿</div>
+      <h1>Welcome to FitAI</h1>
+      <p>AI-powered coaching for weight gain, weight loss & total fitness. Available worldwide.</p>
+    </div>
+    <div class="ob-body" style="display:flex;flex-direction:column;justify-content:center;gap:8px">
+      <div class="card" style="border-color:rgba(0,200,150,.2);background:var(--gx)">
+        <div style="font-size:18px;margin-bottom:5px">💪</div>
+        <div style="font-family:var(--fh);font-size:13px;font-weight:600;color:var(--gd);margin-bottom:3px">Real AI coach — not a calorie counter</div>
+        <div style="font-size:12px;color:var(--gd);opacity:.8;line-height:1.5">Personalised meal plans, workout plans, and a human-style coach that adapts every week to YOUR body.</div>
+      </div>
+      <div class="ib ig" style="margin-top:0">🏆 <span>Join 10,000+ people transforming worldwide</span></div>
+      <div class="ib ia" style="margin-top:0">⭐ <span>4.9/5 rated · 7-day free trial · Cancel anytime</span></div>
+    </div>
+    <div class="ob-footer">
+      <div class="dots"><div class="odp active"></div><div class="odp"></div><div class="odp"></div><div class="odp"></div></div>
+      <button class="btn btn-g" onclick="obNext(1)">Get started →</button>
+    </div>
+  </div>
+  <div class="os" id="ob2">
+    <div class="oh" style="background:var(--gd)"><h1>Tell us about you</h1><p>We personalise everything around your profile.</p></div>
+    <div class="ob-body">
+      <div class="ing"><div class="inpl">Your first name</div><input class="inp" id="ob-name" placeholder="e.g. Alex, Rahul, Sara"></div>
+      <div class="inrow">
+        <div class="ing"><div class="inpl">Age</div><input class="inp" id="ob-age" type="number" placeholder="25" min="10" max="80"></div>
+        <div class="ing"><div class="inpl">Gender</div><select class="sel inp" id="ob-gender"><option value="male">Male</option><option value="female">Female</option><option value="other">Other</option></select></div>
+      </div>
+      <div class="inrow">
+        <div class="ing"><div class="inpl">Height (cm)</div><input class="inp" id="ob-height" type="number" placeholder="175"></div>
+        <div class="ing"><div class="inpl">Activity level</div><select class="sel inp" id="ob-act"><option value="sedentary">Sedentary</option><option value="light">Light</option><option value="moderate" selected>Moderate</option><option value="active">Active</option></select></div>
+      </div>
+      <div class="ing"><div class="inpl">Country</div><select class="sel inp" id="ob-country"><option value="IN">India 🇮🇳</option><option value="US">United States 🇺🇸</option><option value="GB">United Kingdom 🇬🇧</option><option value="AE">UAE 🇦🇪</option><option value="CA">Canada 🇨🇦</option><option value="AU">Australia 🇦🇺</option><option value="SG">Singapore 🇸🇬</option><option value="other">Other 🌍</option></select></div>
+    </div>
+    <div class="ob-footer">
+      <div class="dots"><div class="odp"></div><div class="odp active"></div><div class="odp"></div><div class="odp"></div></div>
+      <button class="btn btn-g" onclick="obNext(2)">Continue →</button>
+    </div>
+  </div>
+  <div class="os" id="ob3">
+    <div class="oh" style="background:var(--gd)"><h1>Your goal</h1><p>We build everything around what you want.</p></div>
+    <div class="ob-body">
+      <div class="gg">
+        <div class="gc" id="gg-gain" onclick="pickGoal('gain')"><div class="ge">💪</div><div class="gn">Weight gain</div><div class="gds">Build muscle & mass</div></div>
+        <div class="gc" id="gg-loss" onclick="pickGoal('loss')"><div class="ge">🔥</div><div class="gn">Weight loss</div><div class="gds">Burn fat & get lean</div></div>
+      </div>
+      <div class="inrow">
+        <div class="ing"><div class="inpl">Current weight (kg)</div><input class="inp" id="ob-cur" type="number" placeholder="72" oninput="calcBMI()"></div>
+        <div class="ing"><div class="inpl">Target weight (kg)</div><input class="inp" id="ob-tar" type="number" placeholder="80"></div>
+      </div>
+      <div class="inrow">
+        <div class="ing"><div class="inpl">Timeline</div><select class="sel inp" id="ob-time"><option value="3">3 months</option><option value="6" selected>6 months</option><option value="12">12 months</option></select></div>
+        <div class="ing"><div class="inpl">Daily water goal</div><select class="sel inp" id="ob-water"><option value="2">2L</option><option value="2.5" selected>2.5L</option><option value="3">3L</option><option value="4">4L</option></select></div>
+      </div>
+      <div id="bmi-box" style="display:none" class="card">
+        <div class="ct">Your BMI</div>
+        <div style="display:flex;align-items:baseline;gap:8px;justify-content:center;margin:4px 0 8px">
+          <span id="bmi-val" style="font-family:var(--fh);font-size:28px;font-weight:700;color:var(--gd)">—</span>
+          <span id="bmi-cat" style="font-size:13px;color:var(--mt)">—</span>
+        </div>
+        <div style="height:6px;border-radius:99px;background:linear-gradient(to right,#60a5fa,#34d399,#fbbf24,#f87171);position:relative;margin-bottom:4px">
+          <div id="bmi-pin" style="position:absolute;top:-4px;width:4px;height:14px;background:var(--txt);border-radius:2px;transform:translateX(-50%);left:40%;transition:left .6s ease"></div>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--ft)"><span>Under</span><span>Normal</span><span>Over</span><span>Obese</span></div>
+      </div>
+    </div>
+    <div class="ob-footer">
+      <div class="dots"><div class="odp"></div><div class="odp"></div><div class="odp active"></div><div class="odp"></div></div>
+      <button class="btn btn-g" onclick="obNext(3)">Continue →</button>
+    </div>
+  </div>
+  <div class="os" id="ob4">
+    <div class="oh" style="background:var(--gd)"><h1 id="ob4-title">You're all set! 🎉</h1><p id="ob4-sub">Your plan is ready.</p></div>
+    <div class="ob-body">
+      <div class="card" style="margin-bottom:10px"><div class="ct">Your personalised plan</div><div id="ob-summary" style="font-size:13px;color:var(--mt);line-height:1.8"></div></div>
+      <div class="card" style="border-color:rgba(139,92,246,.2);background:var(--pul)">
+        <div style="font-size:16px;margin-bottom:5px">🤖</div>
+        <div style="font-family:var(--fh);font-size:13px;font-weight:600;color:#4c1d95;margin-bottom:3px">Meet Coach Arjun</div>
+        <div style="font-size:12px;color:#6d28d9;line-height:1.5">Your AI trainer who remembers your goal, adapts weekly, and feels like a real coach.</div>
+      </div>
+    </div>
+    <div class="ob-footer">
+      <div class="dots"><div class="odp"></div><div class="odp"></div><div class="odp"></div><div class="odp active"></div></div>
+      <button class="btn btn-g" onclick="finishOb()">Start my journey →</button>
+    </div>
+  </div>
+</div>
+
+<!-- STATUS -->
+<div class="status"><span>9:41</span><span style="font-family:var(--fh);font-weight:600">🌿 FitAI</span><span>●●● 100%</span></div>
+
+<!-- HOME -->
+<div class="screen active" id="screen-home">
+  <div class="sh"><h2 id="hg">Good morning 👋</h2><p id="hsub">Start your journey today</p></div>
+  <div class="scroll">
+    <div style="display:flex;gap:8px;margin-bottom:10px">
+      <div class="sk" style="background:var(--aml);border:1px solid rgba(255,184,0,.2)"><div class="skn" style="color:#92400e" id="h-streak">1 🔥</div><div class="skl" style="color:#b45309">Day streak</div></div>
+      <div class="sk" style="background:var(--gx);border:1px solid rgba(0,200,150,.2)"><div class="skn" style="color:var(--gd)" id="h-diff">0 kg</div><div class="skl" style="color:var(--g)" id="h-diff-lbl">to gain</div></div>
+      <div class="sk" style="background:var(--bll);border:1px solid rgba(59,139,255,.2)"><div class="skn" style="color:#1e40af" id="h-cur">—</div><div class="skl" style="color:var(--bl)">current kg</div></div>
+    </div>
+    <div class="card">
+      <div class="ct">Weight progress</div>
+      <div class="sg">
+        <div class="sb"><div class="sn" id="h-st">—</div><div class="su">kg</div><div class="sl">Started</div></div>
+        <div class="sb"><div class="sn" id="h-now">—</div><div class="su">kg</div><div class="sl">Now</div></div>
+        <div class="sb"><div class="sn" id="h-tar">—</div><div class="su">kg</div><div class="sl">Target</div></div>
+      </div>
+      <div class="pw"><div class="pm2"><span id="h-prog-lbl">Progress to goal</span><span id="h-prog-pct">0%</span></div><div class="pt"><div class="pf fg" id="h-prog-bar" style="width:0%"></div></div></div>
+      <div class="ib ig" id="h-tip">Complete your profile to see your plan!</div>
+    </div>
+    <div class="card">
+      <div class="ct">Today's meal plan</div>
+      <div class="mr"><div><div class="mn">4 eggs + whole wheat toast</div><div class="mt3">Breakfast · 8:00 am</div></div><span class="mtg tg" id="m1">+Protein</span></div>
+      <div class="mr"><div><div class="mn">Mixed nuts + Greek yogurt</div><div class="mt3">Mid-morning · 11:00 am</div></div><span class="mtg tg">+Fats</span></div>
+      <div class="mr"><div><div class="mn">Dal, rice, paneer or chicken</div><div class="mt3">Lunch · 1:30 pm</div></div><span class="mtg tg">+Carbs</span></div>
+      <div class="mr"><div><div class="mn">Peanut butter banana shake</div><div class="mt3">Pre-workout · 4:30 pm</div></div><span class="mtg tg">+Energy</span></div>
+      <div class="mr"><div><div class="mn">Chicken/tofu + roti + veggies</div><div class="mt3">Dinner · 8:00 pm</div></div><span class="mtg tg">+Recovery</span></div>
+    </div>
+    <div class="card">
+      <div class="ct">Water today</div>
+      <div class="drops" id="h-drops">
+        <div class="drop on"></div><div class="drop on"></div><div class="drop on"></div>
+        <div class="drop on"></div><div class="drop on"></div><div class="drop on"></div>
+        <div class="drop"></div><div class="drop"></div><div class="drop"></div><div class="drop"></div>
+      </div>
+      <div class="pw"><div class="pm2"><span>6 of 10 glasses · 1.5L</span><span>60%</span></div><div class="pt"><div class="pf fb" style="width:60%"></div></div></div>
+    </div>
+    <div class="card" style="background:var(--gx);border-color:rgba(0,200,150,.2)">
+      <div style="font-size:18px;margin-bottom:5px">🧘</div>
+      <div style="font-family:var(--fh);font-size:13px;font-weight:600;color:var(--gd);margin-bottom:3px">Today's insight</div>
+      <div style="font-size:12px;color:var(--gd);opacity:.85;line-height:1.5">Eating protein within 30 min post-workout boosts muscle synthesis by 25%. Have your shake ready!</div>
+    </div>
+  </div>
+</div>
+
+<!-- WATER -->
+<div class="screen" id="screen-water">
+  <div class="sh"><h2>Water tracker 💧</h2><p id="water-goal-sub">Daily goal: 2.5L — tap drops to log</p></div>
+  <div class="scroll">
+    <div class="card" style="text-align:center;padding:18px">
+      <div style="font-family:var(--fh);font-size:46px;font-weight:700;color:var(--bl)" id="w-count">0.0L</div>
+      <div style="font-size:13px;color:var(--mt);margin-bottom:12px" id="w-goal-txt">of 2.5L daily goal</div>
+      <div class="drops" id="w-drops" style="justify-content:center"></div>
+      <div style="font-size:11px;color:var(--ft);margin-top:4px">Each drop = 250ml</div>
+    </div>
+    <div class="card">
+      <div class="pw"><div class="pm2"><span>Daily progress</span><span id="w-pct">0%</span></div><div class="pt"><div class="pf fb" id="w-bar" style="width:0%"></div></div></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px">
+        <div class="sb"><div class="sn" style="color:var(--bl)" id="w-left">10</div><div class="sl">Glasses left</div></div>
+        <div class="sb"><div class="sn" style="color:var(--bl)" id="w-rem">2.5L</div><div class="sl">Still to drink</div></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="ct">Why hydration matters</div>
+      <div class="ib ib2" style="margin-top:0;margin-bottom:7px">💧 Water boosts metabolism by 30% and reduces hunger.</div>
+      <div class="ib ig" style="margin-top:0;margin-bottom:7px">💪 Muscles are 75% water — hydration improves recovery.</div>
+      <div class="ib ia" style="margin-top:0">⏰ Drink 1 glass 30 min before each meal for better digestion.</div>
+    </div>
+  </div>
+</div>
+
+<!-- COACH CHAT -->
+<div class="screen" id="screen-chat">
+  <div class="sh" style="padding-bottom:8px;flex-shrink:0">
+    <div style="display:flex;align-items:center;gap:10px">
+      <div class="av">AJ</div>
+      <div>
+        <div style="font-family:var(--fh);font-size:15px;font-weight:600">Coach Arjun</div>
+        <div style="font-size:12px;color:var(--g)"><span class="odot"></span>Online · Feels human, thinks smart</div>
+      </div>
+      <div style="margin-left:auto"><span class="gtag">Pro</span></div>
+    </div>
+    <!-- Mode toggle -->
+    <div style="display:flex;gap:6px;margin-top:10px">
+      <button id="mode-chat" onclick="setMode('chat')" style="flex:1;padding:7px;border-radius:8px;border:1.5px solid var(--g);background:var(--gx);color:var(--gd);font-family:var(--fh);font-size:12px;font-weight:600;cursor:pointer">💬 Chat with coach</button>
+      <button id="mode-grocery" onclick="setMode('grocery')" style="flex:1;padding:7px;border-radius:8px;border:1.5px solid var(--brd2);background:transparent;color:var(--mt);font-family:var(--fh);font-size:12px;font-weight:600;cursor:pointer">🥦 I have groceries</button>
+    </div>
+  </div>
+
+  <!-- CHAT MODE -->
+  <div id="chat-mode" style="display:flex;flex-direction:column;flex:1;overflow:hidden">
+    <div class="chat-area" id="chat-area">
+      <div class="bw ai">
+        <div class="bs">Coach Arjun</div>
+        <div class="bb ai" id="first-msg">Yo! What's good? Tell me what you ate today and I'll be real with you about it — or just ask me anything. I'm here 💪</div>
+      </div>
+    </div>
+    <div class="chips" id="chips">
+      <div class="chip" onclick="sc(this)">What should I eat today?</div>
+      <div class="chip" onclick="sc(this)">Full meal plan please</div>
+      <div class="chip" onclick="sc(this)">Best workout for my goal</div>
+      <div class="chip" onclick="sc(this)">I had eggs + toast today</div>
+      <div class="chip" onclick="sc(this)">I'm feeling lazy today</div>
+      <div class="chip" onclick="sc(this)">Motivate me 🔥</div>
+    </div>
+    <div class="ci-row">
+      <input class="ci" id="ci" placeholder="Talk to your coach..." onkeydown="if(event.key==='Enter')sendMsg()">
+      <button class="sb2" onclick="sendMsg()" aria-label="Send"><svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg></button>
+    </div>
+  </div>
+
+  <!-- GROCERY MODE -->
+  <div id="grocery-mode" style="display:none;flex-direction:column;flex:1;overflow:hidden">
+    <div class="scroll" style="flex:1">
+      <div class="ib ig" style="margin-top:0;margin-bottom:12px">
+        🥦 <span>Tell me what groceries you have at home and I'll give you the best recipes for your <strong id="grocery-goal-txt">weight gain</strong> goal!</span>
+      </div>
+      <div class="ing">
+        <div class="inpl">What do you have at home? (list your ingredients)</div>
+        <textarea id="grocery-input" class="inp" rows="4" placeholder="e.g. eggs, chicken, rice, dal, onion, tomato, milk, banana, peanut butter, bread..." style="resize:none;line-height:1.5"></textarea>
+      </div>
+      <div class="ing">
+        <div class="inpl">When is this meal for?</div>
+        <select class="sel inp" id="grocery-meal">
+          <option value="breakfast">Breakfast</option>
+          <option value="lunch">Lunch</option>
+          <option value="dinner">Dinner</option>
+          <option value="pre-workout">Pre-workout snack</option>
+          <option value="post-workout">Post-workout meal</option>
+          <option value="any">Anytime / full day plan</option>
+        </select>
+      </div>
+      <button class="btn btn-g" id="grocery-btn" onclick="getGroceryRecipe()">Get my recipe from Coach Arjun 🍳</button>
+      <div id="grocery-result" style="margin-top:12px;display:none">
+        <div style="font-family:var(--fh);font-size:13px;font-weight:600;color:var(--gd);margin-bottom:8px;display:flex;align-items:center;gap:6px">
+          <div class="av" style="width:28px;height:28px;font-size:10px">AJ</div>
+          Coach Arjun's recipe for you
+        </div>
+        <div id="grocery-recipe-text" class="card" style="font-size:13px;color:var(--mt);line-height:1.7;white-space:pre-wrap"></div>
+        <button onclick="setMode('chat')" class="btn-o" style="margin-top:10px">Ask more questions →</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- WORKOUT -->
+<div class="screen" id="screen-workout">
+  <div class="sh"><h2>Workout 🏋️</h2><p>AI-generated plan · Updated weekly</p></div>
+  <div class="scroll">
+    <div class="card" style="background:var(--gd);border-color:transparent">
+      <div style="display:flex;justify-content:space-between;margin-bottom:10px"><div style="font-family:var(--fh);font-size:15px;font-weight:700;color:#fff">Upper body push</div><span class="gtag" style="background:rgba(255,255,255,.15);color:#d0fff4">AI-generated</span></div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:7px">
+        <div style="background:rgba(255,255,255,.12);border-radius:8px;padding:8px;text-align:center"><div style="font-family:var(--fh);font-size:17px;font-weight:700;color:#fff">45</div><div style="font-size:10px;color:#6ee7b7">minutes</div></div>
+        <div style="background:rgba(255,255,255,.12);border-radius:8px;padding:8px;text-align:center"><div style="font-family:var(--fh);font-size:17px;font-weight:700;color:#fff">4</div><div style="font-size:10px;color:#6ee7b7">exercises</div></div>
+        <div style="background:rgba(255,255,255,.12);border-radius:8px;padding:8px;text-align:center"><div style="font-family:var(--fh);font-size:17px;font-weight:700;color:#fff">~320</div><div style="font-size:10px;color:#6ee7b7">kcal</div></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="ct">Exercises</div>
+      <div class="wo-row"><div class="wo-n">1</div><div><div class="wo-name">Bench press</div><div class="wo-d">Chest · Compound</div></div><div class="wo-s">4 × 8</div></div>
+      <div class="wo-row"><div class="wo-n">2</div><div><div class="wo-name">Overhead press</div><div class="wo-d">Shoulders · Compound</div></div><div class="wo-s">3 × 10</div></div>
+      <div class="wo-row"><div class="wo-n">3</div><div><div class="wo-name">Incline dumbbell press</div><div class="wo-d">Upper chest · Isolation</div></div><div class="wo-s">3 × 12</div></div>
+      <div class="wo-row"><div class="wo-n">4</div><div><div class="wo-name">Tricep pushdowns</div><div class="wo-d">Triceps · Isolation</div></div><div class="wo-s">3 × 15</div></div>
+    </div>
+    <div class="card">
+      <div class="ct">Weekly split</div>
+      <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:3px">
+        <div style="text-align:center"><div style="font-size:9px;color:var(--mt);margin-bottom:2px">M</div><div style="background:var(--g);color:#fff;border-radius:5px;padding:4px 0;font-size:9px;font-weight:600">Legs</div></div>
+        <div style="text-align:center"><div style="font-size:9px;color:var(--mt);margin-bottom:2px">T</div><div style="background:var(--g);color:#fff;border-radius:5px;padding:4px 0;font-size:9px;font-weight:600">Pull</div></div>
+        <div style="text-align:center"><div style="font-size:9px;color:var(--mt);margin-bottom:2px">W</div><div style="background:var(--gd);color:#fff;border-radius:5px;padding:4px 0;font-size:9px;font-weight:700">Push</div></div>
+        <div style="text-align:center"><div style="font-size:9px;color:var(--mt);margin-bottom:2px">T</div><div style="background:var(--bg);color:var(--mt);border:1px solid var(--brd);border-radius:5px;padding:4px 0;font-size:9px">Rest</div></div>
+        <div style="text-align:center"><div style="font-size:9px;color:var(--mt);margin-bottom:2px">F</div><div style="background:var(--bg);color:var(--mt);border:1px solid var(--brd);border-radius:5px;padding:4px 0;font-size:9px">Legs</div></div>
+        <div style="text-align:center"><div style="font-size:9px;color:var(--mt);margin-bottom:2px">S</div><div style="background:var(--bg);color:var(--mt);border:1px solid var(--brd);border-radius:5px;padding:4px 0;font-size:9px">Pull</div></div>
+        <div style="text-align:center"><div style="font-size:9px;color:var(--mt);margin-bottom:2px">S</div><div style="background:var(--bg);color:var(--mt);border:1px solid var(--brd);border-radius:5px;padding:4px 0;font-size:9px">Rest</div></div>
+      </div>
+    </div>
+    <div class="ib ig" style="margin-bottom:10px">💪 Coach Arjun adjusts your plan based on your progress each week.</div>
+    <button class="btn btn-g" onclick="goTo('chat')">Ask Coach Arjun about this workout →</button>
+  </div>
+</div>
+
+<!-- PROGRESS -->
+<div class="screen" id="screen-progress">
+  <div class="sh"><h2>Progress 📸</h2><p>Track your transformation</p></div>
+  <div class="scroll">
+    <div class="sg" style="margin-bottom:10px">
+      <div class="sb"><div class="sn" id="pr-s">—</div><div class="su">kg</div><div class="sl">Start</div></div>
+      <div class="sb"><div class="sn" id="pr-n">—</div><div class="su">kg</div><div class="sl">Now</div></div>
+      <div class="sb"><div class="sn" id="pr-d" style="color:var(--g)">+0</div><div class="su">kg</div><div class="sl">Change</div></div>
+    </div>
+    <div class="card">
+      <div class="ct">Log today's weight</div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <input class="inp" id="log-w" type="number" placeholder="e.g. 74.5" style="flex:1">
+        <button onclick="logW()" style="background:var(--gd);color:#fff;border:none;border-radius:var(--rs);padding:11px 14px;font-family:var(--fh);font-size:13px;font-weight:600;cursor:pointer">Log →</button>
+      </div>
+    </div>
+    <div class="pu-btn" onclick="document.getElementById('ph-in').click()">
+      <input type="file" id="ph-in" accept="image/*" onchange="upPhoto(event)" style="display:none">
+      <div style="font-size:22px;margin-bottom:5px">📸</div>
+      <div style="font-family:var(--fh);font-size:13px;font-weight:600;color:var(--gd)">Add progress photo</div>
+      <div style="font-size:12px;color:var(--mt);margin-top:2px">Tap to upload today's photo</div>
+    </div>
+    <div class="ct" style="padding:0 0 6px">Your journey</div>
+    <div id="tl-list"><div style="text-align:center;padding:18px;color:var(--ft);font-size:13px">Log your weight above to start 👆</div></div>
+    <div class="ib ip" style="margin:8px 0">👑 Pro members get AI body analysis weekly from Coach Arjun.</div>
+  </div>
+</div>
+
+<!-- SHOP -->
+<div class="screen" id="screen-shop">
+  <div class="sh"><h2>FitAI Shop 🛍️</h2><p id="shop-sub">Coach-recommended · Ships worldwide 🌍</p></div>
+  <div class="scroll">
+    <div id="shop-items">
+      <div id="shop-goal-banner" class="ib ig" style="margin-bottom:10px;margin-top:0">🛒 Loading shop...</div>
+      <div id="dynamic-shop-items"></div>
+    </div>
+  </div>
+</div>
+
+<!-- TABS -->
+<div class="tabs">
+  <div class="tab active" id="tab-home" onclick="goTo('home')"><div class="tab-icon">🏠</div><span class="tab-lbl">Home</span></div>
+  <div class="tab" id="tab-water" onclick="goTo('water')"><div class="tab-icon">💧</div><span class="tab-lbl">Water</span></div>
+  <div class="tab" id="tab-chat" onclick="goTo('chat')"><div class="tab-icon">🤖</div><span class="tab-lbl">Coach</span></div>
+  <div class="tab" id="tab-workout" onclick="goTo('workout')"><div class="tab-icon">🏋️</div><span class="tab-lbl">Workout</span></div>
+  <div class="tab" id="tab-progress" onclick="goTo('progress')"><div class="tab-icon">📈</div><span class="tab-lbl">Progress</span></div>
+  <div class="tab" id="tab-shop" onclick="goTo('shop')"><div class="tab-icon">🛍️</div><span class="tab-lbl">Shop</span></div>
+</div>
+
+<!-- PAYMENT MODAL -->
+<div class="pay-modal" id="pay-modal" onclick="if(event.target===this)closePay()">
+  <div class="pay-sheet">
+    <div class="pm-handle"></div>
+    <div style="font-family:var(--fh);font-size:17px;font-weight:700;margin-bottom:4px" id="pay-title">Upgrade to Pro</div>
+    <div style="font-size:12px;color:var(--mt);margin-bottom:14px">Pick the plan that works for you</div>
+    <div style="font-size:11px;font-weight:600;color:var(--ft);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">Choose duration</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px">
+      <div class="dur-opt active" id="dur-1m" onclick="setDur('1m')"><div style="font-family:var(--fh);font-size:13px;font-weight:700" id="dur-1m-price">₹999</div><div style="font-size:11px;color:var(--mt)">1 month</div><div style="font-size:10px;color:var(--ft);margin-top:2px">—</div></div>
+      <div class="dur-opt" id="dur-3m" onclick="setDur('3m')"><div style="font-family:var(--fh);font-size:13px;font-weight:700" id="dur-3m-price">₹2,799</div><div style="font-size:11px;color:var(--mt)">3 months</div><div style="font-size:10px;color:var(--g);margin-top:2px" id="dur-3m-save">Save ₹198</div></div>
+      <div class="dur-opt" id="dur-6m" onclick="setDur('6m')"><div style="font-family:var(--fh);font-size:13px;font-weight:700" id="dur-6m-price">₹5,399</div><div style="font-size:11px;color:var(--mt)">6 months</div><div style="font-size:10px;color:var(--g);margin-top:2px" id="dur-6m-save">Save ₹595</div></div>
+      <div class="dur-opt" id="dur-1y" onclick="setDur('1y')"><div style="font-family:var(--fh);font-size:13px;font-weight:700" id="dur-1y-price">₹9,999</div><div style="font-size:11px;color:var(--mt)">1 year</div><div style="font-size:10px;color:var(--am);margin-top:2px;font-weight:600">Best deal 🔥</div></div>
+    </div>
+    <div style="background:var(--bg);border-radius:var(--rs);padding:14px;margin-bottom:12px;text-align:center;border:1px solid var(--brd)">
+      <div style="font-family:var(--fh);font-size:36px;font-weight:800;color:var(--txt)" id="pay-price">₹999</div>
+      <div style="font-size:13px;color:var(--mt)" id="pay-per">for 1 month</div>
+      <div style="font-size:12px;color:var(--g);margin-top:3px;font-weight:500" id="pay-save"></div>
+    </div>
+    <div style="background:var(--bg);border-radius:var(--rs);padding:10px 12px;margin-bottom:12px;font-size:12px;color:var(--mt);line-height:1.7">✓ 7-day free trial &nbsp;·&nbsp; ✓ Cancel anytime<br>✓ Works worldwide &nbsp;·&nbsp; <span style="color:var(--g);font-weight:500">Won't be charged for 7 days</span></div>
+    <button onclick="startPay()" style="width:100%;padding:14px;background:linear-gradient(135deg,var(--gd),var(--g));color:#fff;border:none;border-radius:var(--rs);font-family:var(--fh);font-size:15px;font-weight:700;cursor:pointer;margin-bottom:8px;box-shadow:0 4px 14px rgba(0,200,150,.3)">Start free trial → 🔒</button>
+    <button class="btn-o" onclick="closePay()" style="margin-bottom:0">Maybe later</button>
+  </div>
+</div>
+
+</div>
+
+<script>
+// ── SUPABASE ──
+const {createClient} = supabase;
+const sb = createClient(
+  'https://koryrqomquvnmjxtnnke.supabase.co',
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtvcnlycW9tcXV2bm1qeHRubmtlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk4Njk4NDcsImV4cCI6MjA5NTQ0NTg0N30.KP36C1yDMhWDkYySgWXMRu96On5XtnD-gfW0aGWiWMw'
+);
+
+// ── STATE ──
+let U={name:'',age:0,gender:'male',height:175,act:'moderate',country:'IN',goal:'gain',cur:0,tar:0,time:6,waterGoal:2.5,log:[],photos:[],streak:1,isPro:false,isStarter:false,months:0,currency:'IN'};
+let selGoal='gain',curPlan='pro',curDur='1m',aiThinking=false;
+let currentUser=null;
+
+// ── 3D INTRO PARTICLES ──
+function initIntro(){
+  const canvas=document.getElementById('intro-canvas');
+  const ctx=canvas.getContext('2d');
+  canvas.width=canvas.offsetWidth||390;
+  canvas.height=canvas.offsetHeight||820;
+  const particles=[];
+  for(let i=0;i<60;i++){
+    particles.push({
+      x:Math.random()*canvas.width,
+      y:canvas.height+Math.random()*200,
+      size:Math.random()*4+1,
+      speed:Math.random()*1.5+0.5,
+      opacity:Math.random(),
+      color:`hsl(${150+Math.random()*40},${70+Math.random()*30}%,${50+Math.random()*20}%)`
+    });
+  }
+  function animate(){
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    particles.forEach(p=>{
+      p.y-=p.speed;
+      p.opacity=Math.sin((canvas.height-p.y)/canvas.height*Math.PI)*0.8;
+      if(p.y<-10){p.y=canvas.height+10;p.x=Math.random()*canvas.width;}
+      ctx.beginPath();
+      ctx.arc(p.x,p.y,p.size,0,Math.PI*2);
+      ctx.fillStyle=p.color;
+      ctx.globalAlpha=p.opacity;
+      ctx.fill();
+    });
+    ctx.globalAlpha=1;
+    requestAnimationFrame(animate);
+  }
+  animate();
+}
+
+function startApp(){
+  document.getElementById('intro').classList.add('done');
+  document.getElementById('real-loader').style.display='flex';
+  checkAuth();
+}
+
+// ── AUTH CHECK ──
+async function checkAuth(){
+  setLoadMsg('Checking your account...');
+  try{
+    const {data:{session}}=await sb.auth.getSession();
+    if(session){
+      currentUser=session.user;
+      setLoadMsg('Loading your profile...');
+      await loadProfile();
+    } else {
+      // No session — show onboarding for guest use
+      hideLoader();
+      document.getElementById('ob').classList.add('active');
+    }
+  }catch(e){
+    // If Supabase fails, still show the app
+    hideLoader();
+    document.getElementById('ob').classList.add('active');
+  }
+}
+
+async function loadProfile(){
+  try{
+    const {data,error}=await sb.from('profiles').select('*').eq('id',currentUser.id).single();
+    if(data && data.name){
+      // Load saved profile
+      U.name=data.name||'';
+      U.goal=data.goal||'gain';
+      U.cur=data.current_weight||0;
+      U.tar=data.target_weight||0;
+      U.height=data.height||175;
+      U.country=data.country||'IN';
+      U.currency=data.country==='US'?'US':data.country==='GB'?'GB':data.country==='AE'?'AE':'IN';
+      U.isPro=data.plan==='pro';
+      U.isStarter=data.plan==='starter'||data.plan==='pro';
+      U.waterGoal=data.water_goal||2.5;
+      U.streak=data.streak||1;
+      // Load weight log
+      const {data:logs}=await sb.from('weight_log').select('*').eq('user_id',currentUser.id).order('date',{ascending:false}).limit(20);
+      if(logs)U.log=logs.map(l=>({w:l.weight,date:l.date,note:l.note||'Check-in',photo:null}));
+      hideLoader();
+      updateHome();updateProgress();updateShop();initWater();
+      document.getElementById('first-msg').textContent=`Welcome back, ${U.name}! 💪 Your ${U.goal==='gain'?'muscle gain':'weight loss'} journey is going great. What do you want to work on today?`;
+    } else {
+      // New user — show onboarding
+      hideLoader();
+      document.getElementById('ob').classList.add('active');
+    }
+  }catch(e){
+    hideLoader();
+    document.getElementById('ob').classList.add('active');
+  }
+}
+
+function setLoadMsg(msg){document.getElementById('load-msg').textContent=msg;}
+function hideLoader(){document.getElementById('real-loader').classList.add('hide');}
+
+// ── SAVE PROFILE TO SUPABASE ──
+async function saveProfile(){
+  if(!currentUser)return;
+  try{
+    await sb.from('profiles').upsert({
+      id:currentUser.id,
+      name:U.name,
+      email:currentUser.email,
+      goal:U.goal,
+      current_weight:U.cur,
+      target_weight:U.tar,
+      height:U.height,
+      country:U.country,
+      plan:U.isPro?'pro':U.isStarter?'starter':'free',
+      months_paid:U.months,
+      streak:U.streak,
+      water_goal:U.waterGoal
+    });
+  }catch(e){console.log('Save error:',e);}
+}
+
+async function saveWeightLog(weight){
+  if(!currentUser)return;
+  try{
+    await sb.from('weight_log').insert({
+      user_id:currentUser.id,
+      weight:weight,
+      date:new Date().toISOString().split('T')[0],
+      note:'Check-in'
+    });
+  }catch(e){console.log('Log error:',e);}
+}
+
+// ── ONBOARDING ──
+let obStep=1;
+function obNext(s){
+  if(s===2){
+    const n=document.getElementById('ob-name').value.trim();
+    if(!n){alert('Please enter your name');return;}
+    U.name=n;U.age=parseInt(document.getElementById('ob-age').value)||25;
+    U.gender=document.getElementById('ob-gender').value;
+    U.height=parseInt(document.getElementById('ob-height').value)||175;
+    U.act=document.getElementById('ob-act').value;
+    U.country=document.getElementById('ob-country').value;
+  }
+  if(s===3){
+    if(!selGoal){alert('Please select a goal');return;}
+    const c=parseFloat(document.getElementById('ob-cur').value);
+    const t=parseFloat(document.getElementById('ob-tar').value);
+    if(!c||!t){alert('Please enter your weights');return;}
+    U.goal=selGoal;U.cur=c;U.tar=t;
+    U.time=parseInt(document.getElementById('ob-time').value);
+    U.waterGoal=parseFloat(document.getElementById('ob-water').value)||2.5;
+    U.currency=U.country==='US'?'US':U.country==='GB'?'GB':U.country==='AE'?'AE':'IN';
+    U.log=[{w:c,date:fmtDate(new Date()),note:'Start',photo:null}];
+    buildSum();
+  }
+  document.getElementById('ob'+s).classList.remove('active');
+  obStep=s+1;
+  document.getElementById('ob'+obStep).classList.add('active');
+}
+
+function pickGoal(g){
+  selGoal=g;
+  document.getElementById('gg-gain').classList.toggle('sg2',g==='gain');
+  document.getElementById('gg-loss').classList.toggle('sr',g==='loss');
+  calcBMI();
+}
+
+function calcBMI(){
+  const w=parseFloat(document.getElementById('ob-cur').value);
+  const h=parseFloat(document.getElementById('ob-height').value)||175;
+  if(!w)return;
+  const bmi=(w/((h/100)**2));
+  const pct=Math.min(100,Math.max(0,((bmi-15)/25)*100));
+  document.getElementById('bmi-val').textContent=bmi.toFixed(1);
+  document.getElementById('bmi-cat').textContent=bmi<18.5?'Underweight':bmi<25?'Normal':bmi<30?'Overweight':'Obese';
+  document.getElementById('bmi-pin').style.left=pct+'%';
+  document.getElementById('bmi-box').style.display='block';
+}
+
+function buildSum(){
+  const diff=Math.abs(U.tar-U.cur);
+  const C={IN:'₹',US:'$',GB:'£',AE:'AED '}[U.currency]||'₹';
+  const prices={IN:'499',US:'5.99',GB:'4.99',AE:'21.99'};
+  document.getElementById('ob4-title').textContent='You\'re all set, '+U.name+'! 🎉';
+  document.getElementById('ob4-sub').textContent='Your personalised '+U.goal+' plan is ready.';
+  document.getElementById('ob-summary').innerHTML=`<b>Goal:</b> ${U.goal==='gain'?'Weight gain 💪':'Weight loss 🔥'}<br><b>Journey:</b> ${U.cur}kg → ${U.tar}kg<br><b>Timeline:</b> ${U.time} months<br><b>Daily protein:</b> ${Math.round(U.cur*(U.goal==='gain'?1.8:2.0))}g<br><b>Water goal:</b> ${U.waterGoal}L/day<br><b>Starter plan:</b> ${C}${prices[U.currency]||'499'}/month`;
+}
+
+async function finishOb(){
+  document.getElementById('ob').classList.remove('active');
+  updateHome();updateProgress();updateShop();initWater();
+  document.getElementById('first-msg').textContent=`Hey ${U.name}! 💪 No cap, I'm Coach Arjun and I'm here for your ${U.goal==='gain'?'gains':'glow-up'} bestie! Tell me what you ate today and I'll give you feedback — or ask me to build your full meal plan! 🔥`;
+  if(U.goal==='loss'){document.querySelectorAll('.mtg.tg').forEach(t=>{t.classList.remove('tg');t.classList.add('tr');});}
+  await saveProfile();
+}
+
+// ── HOME ──
+function updateHome(){
+  const h=new Date().getHours();
+  const g=h<12?'Good morning':h<17?'Good afternoon':'Good evening';
+  document.getElementById('hg').textContent=g+', '+U.name+' 👋';
+  document.getElementById('hsub').textContent=(U.goal==='gain'?'Weight gain':'Weight loss')+' goal · Day '+U.streak;
+  document.getElementById('h-cur').textContent=U.cur||'—';
+  document.getElementById('h-streak').textContent=U.streak+' 🔥';
+  const diff=U.tar-U.cur;
+  document.getElementById('h-diff').textContent=(U.goal==='gain'?'+':'-')+Math.abs(diff).toFixed(1)+' kg';
+  document.getElementById('h-diff-lbl').textContent=U.goal==='gain'?'kg to gain':'kg to lose';
+  document.getElementById('h-st').textContent=U.log[0]?.w||U.cur;
+  document.getElementById('h-now').textContent=U.cur;
+  document.getElementById('h-tar').textContent=U.tar;
+  const tot=Math.abs(U.tar-(U.log[0]?.w||U.cur));
+  const done=Math.abs(U.cur-(U.log[0]?.w||U.cur));
+  const pct=tot>0?Math.min(100,Math.round((done/tot)*100)):0;
+  document.getElementById('h-prog-bar').style.width=pct+'%';
+  document.getElementById('h-prog-pct').textContent=pct+'%';
+  document.getElementById('h-tip').innerHTML='💡 At this rate you\'ll reach '+U.tar+'kg in ~'+U.time+' months. Stay consistent!';
+}
+
+// ── WATER ──
+function initWater(){
+  const wg=U.waterGoal||2.5;
+  const total=Math.round(wg/0.25);
+  document.getElementById('water-goal-sub').textContent=`Daily goal: ${wg}L — tap drops to log`;
+  document.getElementById('w-goal-txt').textContent=`of ${wg}L daily goal`;
+  document.getElementById('w-left').textContent=total;
+  document.getElementById('w-rem').textContent=wg+'L';
+  const wd=document.getElementById('w-drops');
+  wd.innerHTML='';
+  for(let i=0;i<total;i++){
+    const d=document.createElement('div');
+    d.className='drop';
+    d.onclick=function(){td(this);};
+    wd.appendChild(d);
+  }
+  document.getElementById('w-count').textContent='0.0L';
+  document.getElementById('w-pct').textContent='0%';
+  document.getElementById('w-bar').style.width='0%';
+}
+
+function td(el){
+  el.classList.toggle('on');
+  const drops=document.querySelectorAll('#w-drops .drop');
+  const filled=Array.from(drops).filter(x=>x.classList.contains('on')).length;
+  const total=drops.length;
+  const wg=U.waterGoal||2.5;
+  document.getElementById('w-count').textContent=(filled*.25).toFixed(1)+'L';
+  const pct=Math.round((filled/total)*100);
+  document.getElementById('w-pct').textContent=pct+'%';
+  document.getElementById('w-bar').style.width=pct+'%';
+  document.getElementById('w-left').textContent=total-filled;
+  document.getElementById('w-rem').textContent=((total-filled)*.25).toFixed(1)+'L';
+}
+
+// ── PROGRESS ──
+function updateProgress(){
+  const s=U.log[0]?.w||U.cur;
+  document.getElementById('pr-s').textContent=s;
+  document.getElementById('pr-n').textContent=U.cur;
+  const d=(U.cur-s).toFixed(1);
+  const el=document.getElementById('pr-d');
+  el.textContent=(d>=0?'+':'')+d;
+  el.style.color=(U.goal==='gain'?d>=0:d<=0)?'var(--g)':'var(--co)';
+  renderTL();
+}
+
+function renderTL(){
+  const list=document.getElementById('tl-list');
+  if(!U.log.length){return;}
+  list.innerHTML=U.log.slice().reverse().map((e,i)=>{
+    const rv=U.log.slice().reverse();
+    const ch=i<rv.length-1?(e.w-rv[i+1].w).toFixed(1):null;
+    const badge=i===0?`<span class="tl-badge" style="background:var(--gx);color:var(--gd)">Latest</span>`:
+      ch?`<span class="tl-badge" style="background:${parseFloat(ch)>=0?'var(--gx)':'var(--col)'};color:${parseFloat(ch)>=0?'var(--gd)':'#b91c1c'}">${parseFloat(ch)>=0?'+':''}${ch} kg</span>`:'';
+    const ph=e.photo?`<div class="tl-ph"><img src="${e.photo}"/></div>`:`<div class="tl-ph">⚖️</div>`;
+    return`<div class="tl-item">${ph}<div><div class="tl-date">${e.date}</div><div class="tl-wt">${e.w} kg</div><div class="tl-note">${e.note||''}</div>${badge}</div></div>`;
+  }).join('');
+}
+
+async function logW(){
+  const v=parseFloat(document.getElementById('log-w').value);
+  if(!v||v<20||v>300){alert('Enter a valid weight');return;}
+  U.cur=v;
+  U.log.push({w:v,date:fmtDate(new Date()),note:'Check-in',photo:null});
+  document.getElementById('log-w').value='';
+  U.streak++;
+  updateHome();updateProgress();
+  await saveWeightLog(v);
+  await saveProfile();
+}
+
+function upPhoto(e){
+  const f=e.target.files[0];if(!f)return;
+  const r=new FileReader();
+  r.onload=x=>{
+    const last=U.log[U.log.length-1];
+    if(last){last.photo=x.target.result;last.note='Progress photo';}
+    else U.log.push({w:U.cur,date:fmtDate(new Date()),note:'Progress photo',photo:x.target.result});
+    renderTL();
+  };
+  r.readAsDataURL(f);e.target.value='';
+}
+
+// ── SHOP ──
+const SHOP_DATA={
+  gain:{
+    supplements:[
+      {icon:'🥛',name:'ON Gold Standard Whey 2kg',desc:'Best protein for muscle gain. 24g per scoop. Coach top pick.',price:{IN:'₹3,499',US:'$41.99',GB:'£34.99',AE:'AED 153'},url:'https://www.amazon.in/s?k=optimum+nutrition+gold+standard+whey'},
+      {icon:'⚡',name:'Creatine Monohydrate 500g',desc:'Proven to increase strength and muscle mass. Take 5g daily.',price:{IN:'₹899',US:'$10.99',GB:'£8.99',AE:'AED 39'},url:'https://www.amazon.in/s?k=creatine+monohydrate+500g'},
+      {icon:'🍌',name:'Mass Gainer 3kg',desc:'High calorie. Perfect for hard gainers who struggle to eat enough.',price:{IN:'₹1,899',US:'$22.99',GB:'£18.99',AE:'AED 83'},url:'https://www.amazon.in/s?k=mass+gainer+3kg'},
+      {icon:'💊',name:'Multivitamin + Omega-3',desc:'Daily essentials. Improves recovery, sleep, and hormones.',price:{IN:'₹649',US:'$7.99',GB:'£6.49',AE:'AED 28'},url:'https://www.amazon.in/s?k=multivitamin+omega+3+combo'},
+    ],
+    gear:[
+      {icon:'👕',name:'Dry-Fit Gym T-shirt',desc:'Breathable · Perfect for weight training · Ships worldwide',price:{IN:'₹799',US:'$9.59',GB:'£7.99',AE:'AED 35'},url:'https://www.amazon.in/s?k=gym+dry+fit+tshirt+men'},
+      {icon:'🧤',name:'Gym Gloves + Wrist Support',desc:'Protects palms during heavy lifts. Essential for serious training.',price:{IN:'₹449',US:'$5.49',GB:'£4.49',AE:'AED 19'},url:'https://www.amazon.in/s?k=gym+gloves+wrist+support'},
+      {icon:'💧',name:'2.5L Motivational Water Bottle',desc:'Time-marked · BPA-free · Hit your daily water goal',price:{IN:'₹699',US:'$8.39',GB:'£6.99',AE:'AED 30'},url:'https://www.amazon.in/s?k=2.5+litre+motivational+water+bottle'},
+    ]
+  },
+  loss:{
+    supplements:[
+      {icon:'🔥',name:'Whey Protein Isolate 1kg',desc:'Low calorie, high protein. 27g protein, only 110 kcal per scoop.',price:{IN:'₹2,499',US:'$29.99',GB:'£24.99',AE:'AED 109'},url:'https://www.amazon.in/s?k=whey+protein+isolate+1kg'},
+      {icon:'🍵',name:'Green Tea Extract + CLA',desc:'Boosts fat burning metabolism naturally. Coach recommends morning.',price:{IN:'₹599',US:'$7.19',GB:'£5.99',AE:'AED 26'},url:'https://www.amazon.in/s?k=green+tea+extract+cla+fat+burner'},
+      {icon:'💊',name:'Multivitamin + Omega-3',desc:'Essential in calorie deficit. Prevents nutrient gaps and fatigue.',price:{IN:'₹649',US:'$7.99',GB:'£6.49',AE:'AED 28'},url:'https://www.amazon.in/s?k=multivitamin+omega+3+combo'},
+      {icon:'🧊',name:'L-Carnitine 3000mg',desc:'Transports fat as energy. Best taken 30 min before cardio.',price:{IN:'₹799',US:'$9.59',GB:'£7.99',AE:'AED 35'},url:'https://www.amazon.in/s?k=l+carnitine+3000mg+liquid'},
+    ],
+    gear:[
+      {icon:'👟',name:'Running / Cardio Shoes',desc:'Proper shoes reduce injury. Coach pick for HIIT + running.',price:{IN:'₹1,999',US:'$23.99',GB:'£19.99',AE:'AED 87'},url:'https://www.amazon.in/s?k=running+shoes+cardio+gym'},
+      {icon:'🩱',name:'Compression leggings',desc:'Supports muscles during cardio. Reduces soreness.',price:{IN:'₹1,199',US:'$14.39',GB:'£11.99',AE:'AED 52'},url:'https://www.amazon.in/s?k=compression+leggings+gym+women'},
+      {icon:'💧',name:'3L Water Bottle with Time Markers',desc:'For weight loss you need 3L daily. This tracks it hourly.',price:{IN:'₹699',US:'$8.39',GB:'£6.99',AE:'AED 30'},url:'https://www.amazon.in/s?k=3+litre+water+bottle+time+marker'},
+    ]
+  }
+};
+
+function updateShop(){
+  const goal=U.goal||'gain';
+  const C=U.currency||'IN';
+  const data=SHOP_DATA[goal];
+  document.getElementById('shop-goal-banner').innerHTML=goal==='gain'?'💪 Coach Arjun\'s picks for <strong>muscle gain</strong>. All ship worldwide.':'🔥 Coach Arjun\'s picks for <strong>fat loss</strong>. All ship worldwide.';
+  let html='<div class="shop-cat">Supplements for '+(goal==='gain'?'muscle gain':'fat loss')+'</div>';
+  data.supplements.forEach(item=>{
+    html+=`<div class="shop-item"><div class="shop-img">${item.icon}</div><div style="flex:1"><div class="shop-name">${item.name}</div><div class="shop-desc">${item.desc}</div><div class="shop-row"><div class="shop-price">${item.price[C]||item.price.IN}</div><button class="shop-btn" onclick="openShopLink('${item.url}','${item.name.replace(/'/g,'')}')">Buy →</button></div></div></div>`;
+  });
+  if(U.isPro){
+    html+='<div class="shop-cat">Gear & equipment</div>';
+    data.gear.forEach(item=>{
+      html+=`<div class="shop-item"><div class="shop-img">${item.icon}</div><div style="flex:1"><div class="shop-name">${item.name}</div><div class="shop-desc">${item.desc}</div><div class="shop-row"><div class="shop-price">${item.price[C]||item.price.IN}</div><button class="shop-btn" onclick="openShopLink('${item.url}','${item.name.replace(/'/g,'')}')">Buy →</button></div></div></div>`;
+    });
+  }else{
+    html+=`<div style="background:linear-gradient(135deg,var(--gd),var(--g));border-radius:14px;padding:16px;margin-top:12px;text-align:center"><div style="font-size:22px;margin-bottom:6px">👑</div><div style="font-family:var(--fh);font-size:14px;font-weight:700;color:#fff;margin-bottom:4px">Unlock Pro Shop</div><div style="font-size:12px;color:#d0fff4;margin-bottom:12px;line-height:1.5">Get goal-specific gear & equipment</div><button onclick="openPay('pro')" style="background:#fff;color:#007A5E;border:none;border-radius:8px;padding:10px 20px;font-family:var(--fh);font-size:13px;font-weight:700;cursor:pointer">Upgrade to Pro →</button></div>`;
+  }
+  document.getElementById('dynamic-shop-items').innerHTML=html;
+}
+
+function openShopLink(url,name){
+  const overlay=document.createElement('div');
+  overlay.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:999;display:flex;align-items:flex-end;justify-content:center';
+  overlay.innerHTML=`<div style="background:var(--surf);border-radius:22px 22px 0 0;padding:24px 20px 32px;width:100%;max-width:390px;animation:su .3s ease"><div style="width:34px;height:4px;background:var(--brd2);border-radius:99px;margin:0 auto 18px"></div><div style="font-size:28px;text-align:center;margin-bottom:8px">🛒</div><div style="font-family:var(--fh);font-size:16px;font-weight:700;color:var(--txt);text-align:center;margin-bottom:4px">${name}</div><div style="font-size:13px;color:var(--mt);text-align:center;margin-bottom:16px;line-height:1.5">You'll be taken to Amazon.<br>FitAI earns a small commission 🙏</div><button onclick="window.open('${url}','_blank');document.body.removeChild(this.closest('[style*=fixed]'))" style="width:100%;padding:13px;background:var(--gd);color:#fff;border:none;border-radius:10px;font-family:var(--fh);font-size:14px;font-weight:700;cursor:pointer;margin-bottom:8px">Buy on Amazon →</button><button onclick="document.body.removeChild(this.closest('[style*=fixed]'))" style="width:100%;padding:11px;background:transparent;border:1.5px solid var(--brd2);border-radius:10px;font-family:var(--fh);font-size:13px;font-weight:500;color:var(--mt);cursor:pointer">Maybe later</button></div>`;
+  document.body.appendChild(overlay);
+}
+
+// ── NAV ──
+function goTo(t){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+  document.getElementById('screen-'+t).classList.add('active');
+  document.getElementById('tab-'+t).classList.add('active');
+}
+
+// ── PAYMENT ──
+const PRICES={
+  starter:{'1m':{price:{IN:499,US:5.99,GB:4.99,AE:21.99},label:'1 month',save:''},'3m':{price:{IN:1399,US:16.99,GB:13.99,AE:61.99},label:'3 months',save:{IN:'Save ₹98',US:'Save $1',GB:'Save £1',AE:'Save AED4'}},'6m':{price:{IN:2699,US:32.99,GB:27.99,AE:119.99},label:'6 months',save:{IN:'Save ₹295',US:'Save $3',GB:'Save £2',AE:'Save AED12'}},'1y':{price:{IN:4999,US:59.99,GB:49.99,AE:219.99},label:'1 year',save:{IN:'Best deal 🔥',US:'Best deal 🔥',GB:'Best deal 🔥',AE:'Best deal 🔥'}}},
+  pro:{'1m':{price:{IN:999,US:11.99,GB:9.99,AE:43.99},label:'1 month',save:''},'3m':{price:{IN:2799,US:33.99,GB:27.99,AE:121.99},label:'3 months',save:{IN:'Save ₹198',US:'Save $2',GB:'Save £2',AE:'Save AED10'}},'6m':{price:{IN:5399,US:64.99,GB:53.99,AE:235.99},label:'6 months',save:{IN:'Save ₹595',US:'Save $7',GB:'Save £6',AE:'Save AED28'}},'1y':{price:{IN:9999,US:119.99,GB:99.99,AE:439.99},label:'1 year',save:{IN:'Best deal 🔥',US:'Best deal 🔥',GB:'Best deal 🔥',AE:'Best deal 🔥'}}}
+};
+
+function openPay(plan){
+  curPlan=plan;curDur='1m';
+  document.getElementById('pay-title').textContent=plan==='pro'?'Upgrade to Pro 🚀':'Get Starter Plan';
+  const C=U.currency||'IN';
+  const sym={IN:'₹',US:'$',GB:'£',AE:'AED '}[C]||'₹';
+  const p=PRICES[plan];
+  document.getElementById('dur-1m-price').textContent=sym+p['1m'].price[C];
+  document.getElementById('dur-3m-price').textContent=sym+p['3m'].price[C];
+  document.getElementById('dur-6m-price').textContent=sym+p['6m'].price[C];
+  document.getElementById('dur-1y-price').textContent=sym+p['1y'].price[C];
+  const s3=p['3m'].save;document.getElementById('dur-3m-save').textContent=typeof s3==='object'?s3[C]||'Save more':s3;
+  const s6=p['6m'].save;document.getElementById('dur-6m-save').textContent=typeof s6==='object'?s6[C]||'Save more':s6;
+  setDur('1m');
+  document.getElementById('pay-modal').classList.add('open');
+}
+
+function setDur(dur){
+  curDur=dur;
+  ['1m','3m','6m','1y'].forEach(d=>document.getElementById('dur-'+d).classList.toggle('active',d===dur));
+  const C=U.currency||'IN';
+  const sym={IN:'₹',US:'$',GB:'£',AE:'AED '}[C]||'₹';
+  const p=PRICES[curPlan][dur];
+  document.getElementById('pay-price').textContent=sym+p.price[C];
+  document.getElementById('pay-per').textContent='for '+p.label;
+  const sv=typeof p.save==='object'?(p.save[C]||''):p.save||'';
+  document.getElementById('pay-save').textContent=sv;
+}
+
+function closePay(){document.getElementById('pay-modal').classList.remove('open');}
+
+async function startPay(){
+  closePay();
+  U.isPro=curPlan==='pro';U.isStarter=true;
+  U.months=curDur==='1y'?12:curDur==='6m'?6:curDur==='3m'?3:1;
+  updateShop();
+  await saveProfile();
+  document.getElementById('success-scr').classList.add('show');
+}
+
+// ── COACH MODE TOGGLE ──
+function setMode(mode){
+  const isChat = mode==='chat';
+  document.getElementById('chat-mode').style.display = isChat?'flex':'none';
+  document.getElementById('grocery-mode').style.display = isChat?'none':'flex';
+  document.getElementById('mode-chat').style.cssText = isChat
+    ?'flex:1;padding:7px;border-radius:8px;border:1.5px solid var(--g);background:var(--gx);color:var(--gd);font-family:var(--fh);font-size:12px;font-weight:600;cursor:pointer'
+    :'flex:1;padding:7px;border-radius:8px;border:1.5px solid var(--brd2);background:transparent;color:var(--mt);font-family:var(--fh);font-size:12px;font-weight:600;cursor:pointer';
+  document.getElementById('mode-grocery').style.cssText = !isChat
+    ?'flex:1;padding:7px;border-radius:8px;border:1.5px solid var(--g);background:var(--gx);color:var(--gd);font-family:var(--fh);font-size:12px;font-weight:600;cursor:pointer'
+    :'flex:1;padding:7px;border-radius:8px;border:1.5px solid var(--brd2);background:transparent;color:var(--mt);font-family:var(--fh);font-size:12px;font-weight:600;cursor:pointer';
+  if(!isChat){
+    const gt = document.getElementById('grocery-goal-txt');
+    if(gt) gt.textContent = U.goal==='gain'?'muscle gain':'weight loss';
+  }
+}
+
+// ── GROCERY RECIPE ──
+async function getGroceryRecipe(){
+  const items = document.getElementById('grocery-input').value.trim();
+  const meal = document.getElementById('grocery-meal').value;
+  if(!items){alert('Tell me what groceries you have first!');return;}
+  const btn = document.getElementById('grocery-btn');
+  btn.textContent = 'Coach Arjun is cooking up your recipe... 🍳';
+  btn.disabled = true;
+  document.getElementById('grocery-result').style.display = 'none';
+  const prompt = `The user has these ingredients at home: ${items}. They need a ${meal} recipe. Their fitness goal is ${U.goal==='gain'?'muscle gain and weight gain':'weight loss and fat burning'}. Their name is ${U.name||'friend'}.
+
+Write a recipe like a real personal trainer and chef friend would — casual, warm, specific. Include:
+1. The recipe name (make it sound appetising)
+2. Exactly what to use from their ingredients (with quantities)
+3. Simple step by step instructions (max 5 steps)
+4. Why this is good for their ${U.goal==='gain'?'muscle gain':'weight loss'} goal
+5. One quick tip to make it even better
+
+Keep it conversational, not formal. Sound like a friend texting them a recipe, not a cookbook. Use their name once.`;
+
+  try{
+    const text = await callAI('You are Coach Arjun, a personal trainer and nutrition expert. Write like a real friend texting a recipe — casual, warm, specific. No bullet points in the intro. Sound human not robotic.',[{role:'user',content:prompt}],'recipe');
+    document.getElementById('grocery-recipe-text').textContent = text || 'Could not generate recipe. Please try again!';
+    document.getElementById('grocery-result').style.display = 'block';
+  }catch(e){
+    document.getElementById('grocery-recipe-text').textContent = 'Could not generate recipe. Check your internet and try again!';
+    document.getElementById('grocery-result').style.display = 'block';
+  }
+  btn.textContent = 'Get my recipe from Coach Arjun 🍳';
+  btn.disabled = false;
+}
+
+// ── AI CHAT ──
+const FB=[
+  "Okay real talk — you're showing up every day and that's genuinely half the battle won. Most people quit in week 2. You haven't. That matters more than any perfect meal plan.",
+  "Listen, I've seen hundreds of people with your exact goal. The ones who make it? They don't have perfect days — they just don't let one bad day become two. You good?",
+  "Bro/sis, your body is literally changing right now even when you can't see it. Muscle tissue rebuilds overnight. Keep hitting your protein and trust the timeline.",
+  "You know what nobody tells you? The first month is the hardest. After that your body starts craving the routine. You're almost there — don't stop now.",
+  "Real talk — sleep is the most underrated part of your goal. 7-8 hours and your gains literally double. Are you actually sleeping enough or just saying you are? 😂"
+];
+
+// Build human coach personality
+function buildCoachPrompt(){
+  const name = U.name || 'friend';
+  const goal = U.goal==='gain'?'building muscle and gaining weight':'losing fat and getting lean';
+  const country = U.country || 'IN';
+  const foods = country==='IN'?'Indian foods (dal, rice, roti, paneer, chicken, sabzi, dahi, eggs)':
+    country==='US'?'American foods (oats, eggs, chicken, sweet potato, greek yogurt, protein shakes)':
+    country==='GB'?'British/European foods':
+    country==='AE'?'Middle Eastern foods (hummus, falafel, chicken shawarma, dates, labneh)':
+    'local foods';
+
+  return `You are Arjun — a real personal trainer and nutritionist. You are NOT an AI assistant. You are a human coach who genuinely cares about your client.
+
+YOUR PERSONALITY:
+- Talk like a real friend who happens to be a fitness expert
+- Direct, honest, sometimes blunt but always caring
+- Use casual language — contractions, slang, natural speech
+- Occasionally say things like "honestly", "look", "real talk", "I'm telling you", "trust me on this"
+- Sometimes ask follow-up questions to understand better
+- Remember details the user shares and refer back to them
+- React emotionally — get excited when they share wins, genuinely concerned when they struggle
+- NEVER sound like a robot or AI. NEVER use bullet points. NEVER say "Certainly!" or "Great question!"
+- Keep responses conversational — like a WhatsApp message from a friend, not a formal report
+
+YOUR CLIENT:
+- Name: ${name}
+- Goal: ${goal}
+- Current weight: ${U.cur}kg → Target: ${U.tar}kg
+- Timeline: ${U.time} months
+- Country: ${country}
+- Prefers: ${foods}
+- Daily water goal: ${U.waterGoal}L
+
+COACHING RULES:
+1. If they tell you what they ate → react naturally first ("oh nice" / "hmm okay" / "that's actually solid"), then give honest feedback, then ask about their next meal or how they felt
+2. If they ask what to eat → give ONE specific meal with real portions, not a full plan unless they ask
+3. If they're struggling or demotivated → lead with empathy first, advice second
+4. If they share a win → genuinely celebrate it, don't just say "great job!"
+5. For recipes — give real quantities and simple steps
+6. Keep most replies to 2-4 sentences. Only go longer if they asked a complex question.
+7. Never use bullet points or numbered lists in casual chat — write in natural sentences
+8. Sound like you're texting, not writing an essay`;
+}
+
+// ── BACKEND URL — your Supabase Edge Function ──
+const BACKEND = 'https://koryrqomquvnmjxtnnke.supabase.co/functions/v1/chat';
+
+async function callAI(system, messages, type='chat'){
+  // Try Supabase Edge Function first (proper backend)
+  try{
+    const res = await fetch(BACKEND, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtvcnlycW9tcXV2bm1qeHRubmtlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk4Njk4NDcsImV4cCI6MjA5NTQ0NTg0N30.KP36C1yDMhWDkYySgWXMRu96On5XtnD-gfW0aGWiWMw'
+      },
+      body: JSON.stringify({ system, messages, type })
+    });
+    if(!res.ok) throw new Error('Backend error');
+    const d = await res.json();
+    if(d.text) return d.text;
+    throw new Error('No text');
+  }catch(e){
+    // Fallback — direct browser call (works on some networks)
+    try{
+      const res = await fetch('https://api.anthropic.com/v1/messages',{
+        method:'POST',
+        headers:{
+          'Content-Type':'application/json',
+          'anthropic-dangerous-direct-browser-access':'true'
+        },
+        body:JSON.stringify({
+          model:'claude-sonnet-4-20250514',
+          max_tokens: type==='recipe'?600:400,
+          system, messages
+        })
+      });
+      const d = await res.json();
+      return d.content?.[0]?.text || null;
+    }catch(e2){
+      return null;
+    }
+  }
+}
+
+async function sendMsg(){
+  if(aiThinking)return;
+  const inp=document.getElementById('ci');
+  const msg=inp.value.trim();if(!msg)return;
+  inp.value='';addB('u',msg);
+  document.getElementById('chips').style.display='none';
+  showT();
+  const text = await callAI(buildCoachPrompt(),[{role:'user',content:msg}],'chat');
+  rmT();
+  addB('ai', text || FB[Math.floor(Math.random()*FB.length)]);
+}
+
+function sc(el){document.getElementById('ci').value=el.textContent.replace(/🍽️/g,'').trim();sendMsg();}
+function addB(r,t){const a=document.getElementById('chat-area');const w=document.createElement('div');w.className='bw '+r;const s=document.createElement('div');s.className='bs';s.textContent=r==='ai'?'Coach Arjun':'You';const b=document.createElement('div');b.className='bb '+r;b.textContent=t;w.appendChild(s);w.appendChild(b);a.appendChild(w);a.scrollTop=a.scrollHeight;}
+function showT(){aiThinking=true;const a=document.getElementById('chat-area');const w=document.createElement('div');w.className='bw ai';w.id='thinking';const s=document.createElement('div');s.className='bs';s.textContent='Coach Arjun';const b=document.createElement('div');b.className='bb ai d3';b.innerHTML='<div class="d"></div><div class="d"></div><div class="d"></div>';w.appendChild(s);w.appendChild(b);a.appendChild(w);a.scrollTop=a.scrollHeight;}
+function rmT(){aiThinking=false;const el=document.getElementById('thinking');if(el)el.remove();}
+
+// ── UTILS ──
+function fmtDate(d){return d.toLocaleDateString('en-GB',{day:'numeric',month:'short'});}
+
+// ── BOOT ──
+window.addEventListener('load',()=>{
+  initIntro();
+  initWater();
+  updateShop();
+});
+</script>
+</body>
+</html>
