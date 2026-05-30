@@ -1086,28 +1086,27 @@ COACHING RULES:
 8. Sound like you're texting, not writing an essay`;
 }
 
-// ── AI BACKEND ──
-// Key stored safely in Supabase Edge Function secrets only
+// ── AI BACKEND — calls Supabase Edge Function only ──
+// API key lives safely in Supabase Secrets — never in frontend
 const BACKEND = 'https://koryrqomquvnmjxtnnke.supabase.co/functions/v1/chat';
-const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtvcnlycW9tcXV2bm1qeHRubmtlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk4Njk4NDcsImV4cCI6MjA5NTQ0NTg0N30.KP36C1yDMhWDkYySgWXMRu96On5XtnD-gfW0aGWiWMw';
+const SB_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtvcnlycW9tcXV2bm1qeHRubmtlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk4Njk4NDcsImV4cCI6MjA5NTQ0NTg0N30.KP36C1yDMhWDkYySgWXMRu96On5XtnD-gfW0aGWiWMw';
 
 async function callAI(system, messages, type='chat'){
-  const maxTokens = type==='recipe' ? 700 : 450;
   try{
     const res = await fetch(BACKEND, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': 'Bearer ' + SB_KEY
+        'Authorization': 'Bearer ' + SB_ANON
       },
       body: JSON.stringify({ system, messages, type })
     });
     const d = await res.json();
     if(d.text && d.text.length > 5) return d.text;
-    console.log('Edge fn response:', JSON.stringify(d));
+    console.log('Edge fn:', JSON.stringify(d));
     return null;
   }catch(e){
-    console.log('AI call failed:', e.message);
+    console.log('AI failed:', e.message);
     return null;
   }
 }
