@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>FitAI — Login</title>
 <link href="https://fonts.googleapis.com/css2?family=Clash+Display:wght@400;500;600;700&family=Satoshi:wght@300;400;500;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 :root {
   --g: #00C896; --gd: #007A5E; --gx: #E0FFF6;
@@ -207,10 +208,6 @@ body { display: flex; align-items: center; justify-content: center; min-height: 
     <button class="submit-btn" onclick="doLogin()" id="login-btn">
       <span>Log in to FitAI</span>
     </button>
-    <button type="button" onclick="doDemoLogin()" style="width:100%;padding:11px;margin-top:10px;background:var(--surf2);border:1.5px dashed var(--g);border-radius:var(--rs);font-family:var(--font-head);font-size:13px;font-weight:600;color:var(--g);cursor:pointer">
-      Try demo account (no signup)
-    </button>
-    <p id="backend-hint" style="font-size:11px;color:var(--ft);text-align:center;margin-top:10px;line-height:1.5"></p>
     <div class="divider"><span>or</span></div>
     <button class="google-btn" onclick="doGoogle()">
       <svg class="google-icon" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
@@ -282,17 +279,13 @@ body { display: flex; align-items: center; justify-content: center; min-height: 
 
 </div>
 
-<script src="js/fitai-core.js"></script>
 <script>
-async function showBackendHint() {
-  const st = await FitAI.checkBackend();
-  const el = document.getElementById('backend-hint');
-  if (!el) return;
-  el.textContent = st.online
-    ? '✓ Server connected — accounts save to your computer'
-    : '⚠ Start the server: open terminal, run npm start, then open http://localhost:3847';
-}
-showBackendHint();
+// ── SUPABASE INIT ──
+const { createClient } = supabase;
+const sb = createClient(
+  'https://koryrqomquvnmjxtnnke.supabase.co',
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtvcnlycW9tcXV2bm1qeHRubmtlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk4Njk4NDcsImV4cCI6MjA5NTQ0NTg0N30.KP36C1yDMhWDkYySgWXMRu96On5XtnD-gfW0aGWiWMw'
+);
 
 // ── COACH QUOTES per tab ──
 const quotes = {
@@ -392,19 +385,21 @@ async function doLogin() {
   if (!email || !pass) { showErr('Please fill in both fields 👀'); return; }
   clearMsgs(); setLoading('login-btn', true);
   try {
-    const data = await FitAI.login(email, pass);
-    showSuc('Welcome back! Redirecting... 🚀 (' + (data.mode === 'server' ? 'server' : 'local') + ')');
-    setTimeout(() => { window.location.href = 'fitai-app.html'; }, 800);
+    const { data, error } = await sb.auth.signInWithPassword({ email, password: pass });
+    if (error) throw error;
+    showSuc('Welcome back! Redirecting to your dashboard... 🚀');
+    setTimeout(() => {
+      // Redirect to main app — change this URL to your fitai-app.html or dashboard
+      window.location.href = 'fitai-app.html';
+    }, 1200);
   } catch (err) {
-    showErr(err.message || 'Login failed. Try demo account or sign up first.');
+    const msgs = {
+      'Invalid login credentials': 'Wrong email or password bestie 😅 Try again!',
+      'Email not confirmed': 'You need to confirm your email first — check your inbox 📧',
+    };
+    showErr(msgs[err.message] || 'Something went wrong: ' + err.message);
     setLoading('login-btn', false);
   }
-}
-
-async function doDemoLogin() {
-  document.getElementById('login-email').value = 'demo@fitai.com';
-  document.getElementById('login-pass').value = 'demo1234';
-  await doLogin();
 }
 
 // ── SIGNUP ──
@@ -413,41 +408,90 @@ async function doSignup() {
   const email = document.getElementById('signup-email').value.trim();
   const pass = document.getElementById('signup-pass').value;
   if (!name) { showErr('What should Coach Arjun call you? 😄 Enter your name!'); return; }
-  if (!email) { showErr('Need your email bestie 📧'); return; }
-  if (pass.length < 6) { showErr('Password needs at least 6 characters 💪'); return; }
+  if (!email) { showErr('Need your email to send your plan bestie 📧'); return; }
+  if (pass.length < 8) { showErr('Password needs at least 8 characters — make it strong! 💪'); return; }
   clearMsgs(); setLoading('signup-btn', true);
   try {
-    await FitAI.register(email, pass, name);
-    showSuc('Account created! Taking you to the app... 🎉');
-    setTimeout(() => { window.location.href = 'fitai-app.html'; }, 800);
+    const { data, error } = await sb.auth.signUp({
+      email, password: pass,
+      options: {
+        data: { full_name: name },
+        emailRedirectTo: window.location.href
+      }
+    });
+    if (error) throw error;
+    // Save basic profile to Supabase
+    if (data.user) {
+      await sb.from('profiles').upsert({
+        id: data.user.id,
+        name: name,
+        email: email,
+        plan: 'free',
+        months_paid: 0,
+        streak: 0
+      });
+    }
+    // Show verify screen
+    document.getElementById('form-signup').classList.remove('active');
+    document.getElementById('verify-screen').classList.add('show');
+    document.getElementById('verify-email').textContent = email;
+    document.getElementById('coach-text').innerHTML = '<strong>Coach Arjun:</strong> "YO! You\'re officially in the FitAI family 🎉 Check your email and let\'s get this transformation started bestie!"';
   } catch (err) {
-    showErr(err.message || 'Sign up failed.');
+    const msgs = {
+      'User already registered': 'You already have an account! Log in instead 😊',
+      'Password should be at least 6 characters': 'Make your password at least 8 characters strong 💪',
+    };
+    showErr(msgs[err.message] || err.message);
     setLoading('signup-btn', false);
   }
 }
 
 // ── GOOGLE AUTH ──
-function doGoogle() {
-  showErr('Google login is not set up yet. Use email sign up or the demo account button above.');
+async function doGoogle() {
+  try {
+    const { error } = await sb.auth.signInWithOAuth({
+      provider: 'google',
+      options: { redirectTo: window.location.origin + '/fitai-app.html' }
+    });
+    if (error) throw error;
+  } catch (err) {
+    showErr('Google login failed: ' + err.message + '. Make sure Google is enabled in Supabase → Auth → Providers.');
+  }
 }
 
 // ── FORGOT PASSWORD ──
-function doForgot() {
+async function doForgot() {
   const email = document.getElementById('forgot-email').value.trim();
   if (!email) { showErr('Enter your email address first 📧'); return; }
-  showSuc('Local mode: create a new account with the same email, or use demo@fitai.com / demo1234');
+  clearMsgs(); setLoading('forgot-btn', true);
+  try {
+    const { error } = await sb.auth.resetPasswordForEmail(email, {
+      redirectTo: window.location.href
+    });
+    if (error) throw error;
+    showSuc('Reset link sent! Check your inbox 📬 (also check spam just in case)');
+    document.getElementById('coach-text').innerHTML = '<strong>Coach Arjun:</strong> "Sent! Check your inbox bestie — you got this 💌"';
+  } catch (err) {
+    showErr('Error: ' + err.message);
+  }
   setLoading('forgot-btn', false);
 }
 
 // ── RESEND EMAIL ──
 let resendTimer = 0;
-function resendEmail() {
-  showSuc('No email verification needed — just sign up and log in.');
+async function resendEmail() {
+  if (resendTimer > 0) return;
+  const email = document.getElementById('verify-email').textContent;
+  await sb.auth.resend({ type: 'signup', email });
+  showSuc('Email resent! Check your inbox 📧');
 }
 
 // ── CHECK IF ALREADY LOGGED IN ──
-function checkAuth() {
-  if (FitAI.isLoggedIn()) window.location.href = 'fitai-app.html';
+async function checkAuth() {
+  const { data: { session } } = await sb.auth.getSession();
+  if (session) {
+    window.location.href = 'fitai-app.html';
+  }
 }
 checkAuth();
 </script>
