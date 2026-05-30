@@ -1023,10 +1023,10 @@ Keep it conversational, not formal. Sound like a friend texting them a recipe, n
 
   try{
     const text = await callAI('You are Coach Arjun, a personal trainer and nutrition expert. Write like a real friend texting a recipe — casual, warm, specific. No bullet points in the intro. Sound human not robotic.',[{role:'user',content:prompt}],'recipe');
-    document.getElementById('grocery-recipe-text').textContent = text || 'Could not generate recipe. Please try again!';
+    document.getElementById('grocery-recipe-text').textContent = text ? text : 'Having trouble connecting. Check Supabase Edge Function has ANTHROPIC_API_KEY in secrets, then try again!';
     document.getElementById('grocery-result').style.display = 'block';
   }catch(e){
-    document.getElementById('grocery-recipe-text').textContent = 'Could not generate recipe. Check your internet and try again!';
+    document.getElementById('grocery-recipe-text').textContent = 'Connection error: ' + e.message + '. Try again!';
     document.getElementById('grocery-result').style.display = 'block';
   }
   btn.textContent = 'Get my recipe from Coach Arjun 🍳';
@@ -1086,45 +1086,56 @@ COACHING RULES:
 8. Sound like you're texting, not writing an essay`;
 }
 
-// ── BACKEND URL — your Supabase Edge Function ──
+// ── AI BACKEND ──
+// Uses Supabase Edge Function as primary, with direct API as fallback
 const BACKEND = 'https://koryrqomquvnmjxtnnke.supabase.co/functions/v1/chat';
+const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtvcnlycW9tcXV2bm1qeHRubmtlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk4Njk4NDcsImV4cCI6MjA5NTQ0NTg0N30.KP36C1yDMhWDkYySgWXMRu96On5XtnD-gfW0aGWiWMw';
 
 async function callAI(system, messages, type='chat'){
-  // Try Supabase Edge Function first (proper backend)
+  const maxTokens = type==='recipe' ? 700 : 450;
+
+  // PRIMARY: Try Supabase Edge Function
   try{
     const res = await fetch(BACKEND, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtvcnlycW9tcXV2bm1qeHRubmtlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk4Njk4NDcsImV4cCI6MjA5NTQ0NTg0N30.KP36C1yDMhWDkYySgWXMRu96On5XtnD-gfW0aGWiWMw'
+        'Authorization': 'Bearer ' + SB_KEY
       },
       body: JSON.stringify({ system, messages, type })
     });
-    if(!res.ok) throw new Error('Backend error');
     const d = await res.json();
-    if(d.text) return d.text;
-    throw new Error('No text');
+    if(d.text && d.text.length > 10) return d.text;
+    // If edge function returns error, log it and try fallback
+    console.log('Edge function response:', d);
   }catch(e){
-    // Fallback — direct browser call (works on some networks)
-    try{
-      const res = await fetch('https://api.anthropic.com/v1/messages',{
-        method:'POST',
-        headers:{
-          'Content-Type':'application/json',
-          'anthropic-dangerous-direct-browser-access':'true'
-        },
-        body:JSON.stringify({
-          model:'claude-sonnet-4-20250514',
-          max_tokens: type==='recipe'?600:400,
-          system, messages
-        })
-      });
-      const d = await res.json();
-      return d.content?.[0]?.text || null;
-    }catch(e2){
-      return null;
-    }
+    console.log('Edge function failed:', e.message);
   }
+
+  // FALLBACK: Direct Anthropic API call
+  try{
+    const res = await fetch('https://api.anthropic.com/v1/messages',{
+      method: 'POST',
+      headers:{
+        'Content-Type': 'application/json',
+        'anthropic-dangerous-direct-browser-access': 'true'
+      },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: maxTokens,
+        system: system,
+        messages: messages
+      })
+    });
+    const d = await res.json();
+    console.log('Direct API response:', d);
+    if(d.content?.[0]?.text) return d.content[0].text;
+    if(d.error) console.log('API error:', d.error);
+  }catch(e){
+    console.log('Direct API failed:', e.message);
+  }
+
+  return null; // Both failed
 }
 
 async function sendMsg(){
@@ -1136,7 +1147,11 @@ async function sendMsg(){
   showT();
   const text = await callAI(buildCoachPrompt(),[{role:'user',content:msg}],'chat');
   rmT();
-  addB('ai', text || FB[Math.floor(Math.random()*FB.length)]);
+  if(text){
+    addB('ai', text);
+  } else {
+    addB('ai', "Hey, I'm having trouble connecting right now. Check your internet and try again in a sec! 🙏");
+  }
 }
 
 function sc(el){document.getElementById('ci').value=el.textContent.replace(/🍽️/g,'').trim();sendMsg();}
